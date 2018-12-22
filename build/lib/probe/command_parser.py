@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # @Time    : 2018/12/22 1:26 PM
 __author__ = 'Zhou Ran'
+import sys
 import argparse
 import textwrap
 from .GeneToTrans import generateinfo
@@ -18,7 +19,6 @@ from Bio.SeqUtils import MeltingTemp as mt
 2. python /Users/zhouran/opt/proj/2018-11-17-probe/probe/GenerateBlock.py -f ENSMUST00000020329.12.fasta -l 15 -L 22 -g 40 -G 60 -c 100 -C 300 -F 30 -O -o ENSMUST00000020329.12.block.fasta
 3. python /Users/zhouran/opt/proj/2018-11-17-probe/probe/AlignmentFilter.py -x ../GRCm38/GRCm38_mod -s 390 -F 20 -T transfer.trans.txt -f ENSMUST00000020329.12.block.fasta.fastq -o a -v
 """
-
 
 
 def transcript(args):
@@ -66,6 +66,10 @@ def transcript(args):
                            sub)
         BlcokParser('.'.join([sub, 'fastq']), index, '.'.join([outputprefix, 'layerinfo.txt']),
                     '.'.join([sub, 'result']), sal, form)
+
+
+def junction(args):
+    pass
 
 
 def arg():
@@ -196,6 +200,9 @@ __________              ___.          ________                .__
 
     parser_junctio = subparsers.add_parser('junction')
 
+    if len(sys.argv) == 1:
+        userInput.print_help()
+        sys.exit(1)
     return userInput.parse_args()
 
 
