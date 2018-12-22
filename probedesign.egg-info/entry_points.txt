@@ -1,0 +1,3 @@
+[console_scripts]
+probedesign = probe.command_parser:main
+
