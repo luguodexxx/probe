@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # @Time    : 2018/12/22 1:26 PM
 __author__ = 'Zhou Ran'
+import os
 import sys
 import argparse
 import textwrap
@@ -48,6 +49,7 @@ def transcript(args):
     debugVal = args.Debug
     metaVal = args.Meta
     index = args.index
+    probelength = args.probelength
 
     if args.dnac1 >= args.dnac2:
         conc1 = args.dnac1
@@ -60,12 +62,13 @@ def transcript(args):
     exec('nn_table = mt.%s' % args.nn_table, None, globals())
     falist = generateinfo(fasta, targetfile, outputprefix)
     for sub in falist:
+        subprefix = os.path.splitext(sub)[0]
         runSequenceCrawler(sub, l, L, gcPercent, GCPercent, nn_table, tm, TM,
                            X, sal, form, sp, conc1, conc2, headerVal, bedVal,
                            OverlapModeVal, verbocity, reportVal, debugVal, metaVal,
-                           sub)
-        BlcokParser('.'.join([sub, 'fastq']), index, '.'.join([outputprefix, 'layerinfo.txt']),
-                    '.'.join([sub, 'result']), sal, form)
+                           subprefix)
+        BlcokParser('.'.join([subprefix, 'fastq']), index, '.'.join([outputprefix, 'layerinfo.txt']),
+                    '.'.join([subprefix, 'result']), sal, form, probelength, verbose=verbocity)
 
 
 def junction(args):
@@ -197,6 +200,8 @@ __________              ___.          ________                .__
                                        '<tab> candidates discovered <tab> span in kb '
                                        'covered by candidate probes <tab> candidate '
                                        'probes per kb')
+    transcript_parse.add_argument('-pl', '--probelength', action='store', type=int, default=70,
+                                  help='PLP length,default:70')
 
     parser_junctio = subparsers.add_parser('junction')
 
