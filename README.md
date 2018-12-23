@@ -10,3 +10,5 @@ __________              ___.          ________                .__
 
 
 ProbeDesign, a simple command line to generate probe. But it's still not completed.
+
+喜大普奔，第一部分完成
