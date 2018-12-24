@@ -45,6 +45,7 @@ def transcript(args):
     bedVal = args.bed
     OverlapModeVal = args.OverlapMode
     verbocity = args.verbose
+    verbocityblock = False
     reportVal = args.Report
     debugVal = args.Debug
     metaVal = args.Meta
@@ -65,7 +66,7 @@ def transcript(args):
         subprefix = os.path.splitext(sub)[0]
         runSequenceCrawler(sub, l, L, gcPercent, GCPercent, nn_table, tm, TM,
                            X, sal, form, sp, conc1, conc2, headerVal, bedVal,
-                           OverlapModeVal, verbocity, reportVal, debugVal, metaVal,
+                           OverlapModeVal, verbocityblock, reportVal, debugVal, metaVal,
                            subprefix)
         BlcokParser('.'.join([subprefix, 'fastq']), index, '.'.join([outputprefix, 'layerinfo.txt']),
                     '.'.join([subprefix, 'result']), sal, form, probelength, verbose=verbocity)

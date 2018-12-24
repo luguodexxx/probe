@@ -38,6 +38,10 @@ from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC
 
 
+class IndexError(Exception):
+    pass
+
+
 class SAM():
     """
     Process the every mapped information
@@ -159,6 +163,8 @@ class BlcokParser():
         )
 
         result, err = proc.communicate()
+        if not result:
+            raise IndexError("Could not locate a Bowtie index corresponding to basename \"{}\"".format(self.index))
 
         parsing = [
             SAM(line, self.sal, self.formamide)
