@@ -14,4 +14,4 @@ ProbeDesign, a simple command line to generate probe. But it's still not complet
 TODO:
 
 1. 生成index的工具
-2. circRNA
+~~2. circRNA~~

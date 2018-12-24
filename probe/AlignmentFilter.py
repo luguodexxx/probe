@@ -37,6 +37,8 @@ from Bio.SeqUtils import GC
 from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC
 
+SJMOTIF = set(["GT@AG", "CT@AC", "GC@AG", "CT@GC", "AT@AC", "GT@AT"])
+
 
 class IndexError(Exception):
     pass
@@ -121,6 +123,12 @@ def locationfilter(fake_chrname):
         return False
 
 
+# class CircParser():
+#     """
+#     CircRNA parser, uncheck
+#     """
+#     def __init__(self):
+
 class JuncParser():
     """
     JunctParser
@@ -145,7 +153,7 @@ class JuncParser():
 
         with open(self.outfile, 'w') as OUT:
             OUT.write('\t'.join(
-                ['FakeChrom', 'motif', 'left', 'right', 'afterRC', 'beforeRC',
+                ['FakeChrom', 'motif', 'canonical', 'left', 'right', 'afterRC', 'beforeRC',
                  "PLPsequence", 'Tm', 'isoform_nums', 'isoforms']) + '\n')
             for read in self.filter:
                 OUT.write('\t'.join(read) + '\n')
@@ -171,7 +179,9 @@ class JuncParser():
                 left, right = line.PLP
                 plpseq = generateprobe(left, right, self._probelength, probeseqinfo)
 
-                result.append((chrom, self.motif, left, right, revseq, seq, plpseq, Tm, '1', line.geneinfo))
+                result.append((chrom, self.motif,
+                               "yes" if self.motif in SJMOTIF else "no", left, right, revseq, seq, plpseq, Tm, '1',
+                               line.geneinfo))
                 continue
             DIC[line.f_chr][line.location].append(line)
 
@@ -188,7 +198,8 @@ class JuncParser():
                             plpseq = generateprobe(left, right, self._probelength, probeseqinfo)
 
                             result.append(
-                                (chrom, self.motif, left, right, revseq, seq, plpseq, Tm, '1', line.geneinfo))
+                                (chrom, self.motif, "yes" if self.motif in SJMOTIF else "no", left, right, revseq, seq,
+                                 plpseq, Tm, '1', line.geneinfo))
                         else:
                             continue
         return result
@@ -271,7 +282,6 @@ class BlockParser():
             err = err.decode()
             if "ERR" in err:
                 raise IndexError("Could not locate a Bowtie index corresponding to basename \"{}\"".format(index))
-
 
         parsing = [
             SAM(line, sal, formamide)
