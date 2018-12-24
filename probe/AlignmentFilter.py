@@ -55,10 +55,10 @@ class SAM():
         self.sal = int(sal)
         self.form = form
         self.Tm = self.__probeTm()
-
-    @property
-    def geneid(self):
-        return self.geneinfo.split("_")[0]
+        if not self.mapped:
+            self.geneid, self.genesymbol, self.location = ["nogeneid", "nogenesymbol", "0:0:0:1"]
+        else:
+            self.geneid, self.genesymbol, self.location = self.geneinfo.split("_")
 
     @property
     def proRC(self):
@@ -66,10 +66,23 @@ class SAM():
 
     @property
     def PLP(self):
-        # print(self.f_chr)
         left, right = self.f_chr.split(';')[1:]
 
         return (self.proRC[:int(left)], self.proRC[int(left):])
+
+    @property
+    def mapped(self):
+        if int(self.flag) & 4:
+            return False
+        return True
+
+    @property
+    def internal_start(self):
+        return self.location.split(":")[1]
+
+    @property
+    def internal_end(self):
+        return self.location.split(":")[2]
 
     def __probeTm(self):
         """
@@ -82,7 +95,7 @@ class SAM():
 
     def checkFlag(self):
         """
-        Check the reads were mapped on plus[True] or minus[False]
+        Check the reads were mapped on minus[True] or plus[False]
         """
         if int(self.flag) & 16 == 16:
             return True
@@ -93,48 +106,139 @@ class SAM():
         return self.info
 
 
-class BlcokParser():
+def locationfilter(fake_chrname):
     """
-    BlcokParser, execute the bowtie2 command and filter every mapped information on the air
+    Filter the probe location. default length: 80nt
+    :param junctionname: @chrom:2-39;19;19
+    :return:
+    """
+    interval, uplen, downlen = fake_chrname.split(';')
+    upstream, downstream = interval.split(':')[1].split('-')
+
+    if int(upstream) <= 36 and int(downstream) >= 45:
+        return True
+    else:
+        return False
+
+
+class JuncParser():
+    """
+    JunctParser
     """
 
-    def __init__(self, fa, INDEX, TARGETfile, OUTfile, sal, formamide, probelength, verbose=False):
+    def __init__(self, fa, index, targetfile, outfile, sal,
+                 formamide, probelength, verbose=False):
+        self.fa = fa
+        self._prefix = os.path.splitext(os.path.split(self.fa)[1])[0]
+        self.st, self.ed = self._prefix.split(":")[1][:-1].split('-')
+        self.index = index
+        self._targetfile = targetfile
+        self.TARGET = BlockParser.processtarget(self._targetfile)
+        self.sal = sal
+        self.verbose = verbose
+        self.formamide = formamide
+        self._probelength = probelength
+        self.outfile = outfile
+
+        self.samresult = BlockParser.processAlign(self.index, self.fa, self.sal, self.formamide)
+        self.filter = self.__filter()
+
+        with open(self.outfile, 'w') as OUT:
+            OUT.write('\t'.join(
+                ['FakeChrom', 'motif', 'left', 'right', 'afterRC', 'beforeRC',
+                 "PLPsequence", 'Tm', 'isoform_nums', 'isoforms']) + '\n')
+            for read in self.filter:
+                OUT.write('\t'.join(read) + '\n')
+
+    @property
+    def motif(self):
+        return self._prefix.split(':')[-1]
+
+    def __filter(self):
+        """
+        这里还要准备一个文件
+        :return:
+        """
+
+        DIC = defaultdict(lambda: defaultdict(list))
+        probeseqinfo = self.TARGET[self._prefix][:3]
+
+        result = []
+        for line in self.samresult:
+            if not line.mapped:
+                chrom, start, stop, seq, Tm, revseq = line.f_chr, line.abs_start, line.abs_end, line.seq, line.Tm, \
+                                                      line.proRC
+                left, right = line.PLP
+                plpseq = generateprobe(left, right, self._probelength, probeseqinfo)
+
+                result.append((chrom, self.motif, left, right, revseq, seq, plpseq, Tm, '1', line.geneinfo))
+                continue
+            DIC[line.f_chr][line.location].append(line)
+
+        for fakechrom, internalinfo in DIC.items():
+            if locationfilter(fakechrom):
+                for location, samline in internalinfo.items():
+                    if samline.internal_start <= self.st and samline.internal_end >= self.ed:
+                        result.append(line)
+                    else:
+                        if not line.checkFlag():
+                            chrom, start, stop, seq, Tm, revseq = line.f_chr, line.abs_start, line.abs_end, line.seq, line.Tm, \
+                                                                  line.proRC
+                            left, right = line.PLP
+                            plpseq = generateprobe(left, right, self._probelength, probeseqinfo)
+
+                            result.append(
+                                (chrom, self.motif, left, right, revseq, seq, plpseq, Tm, '1', line.geneinfo))
+                        else:
+                            continue
+        return result
+
+
+class BlockParser():
+    """
+    BlockParser, execute the bowtie2 command and filter every mapped information on the air
+    """
+
+    def __init__(self, fa, index, tagetfile, outfile, sal, formamide, probelength, verbose=False):
         self.fa = fa
         self._prefix = os.path.splitext(self.fa)[0]
-        self.index = INDEX
-        self._targetfile = TARGETfile
+        self.index = index
+        self._targetfile = tagetfile
         # self.TARGET = set([i.strip().split('\t')[0] for i in open(TARGETfile).readlines()])
-        self.TARGET = self.__processtarget()
-        self.OUTfile = OUTfile
+        self.TARGET = BlockParser.processtarget(self._targetfile)
+        self.OUTfile = outfile
         self.sal = sal
         self.verbose = verbose
         self.formamide = formamide
         self._probelength = probelength
 
-        self.samresult = self.__processAlign()
+        self.samresult = BlockParser.processAlign(self.index, self.fa, self.sal, self.formamide)
+
         self.filter = self.__filter()
 
         if self.verbose:
-            with open('tmp.sam', 'w') as tmpSAM:
+            with open(self.OUTfile + '.sam', 'w') as tmpSAM:
                 for read in self.samresult:
                     tmpSAM.write(str(read) + '\n')
 
         with open(self.OUTfile, 'w') as OUT:
             OUT.write('\t'.join(
-                ['FakeChrom', 'left', 'right', 'afterRC', 'beforeRC', "PLPsequence", 'Tm', 'isoform_nums',
-                 'isoforms']) + '\n')
+                ['FakeChrom', 'left', 'right', 'afterRC', 'beforeRC',
+                 "PLPsequence", 'Tm', 'isoform_nums', 'isoforms']) + '\n')
             for read in self.filter:
                 OUT.write('\t'.join(read) + '\n')
 
-    def __processtarget(self):
+    @staticmethod
+    def processtarget(targetfile):
         targetres = defaultdict(list)
-        with open(self._targetfile) as IN:
+        with open(targetfile) as IN:
             for line in IN.readlines():
                 line = line.strip().split('\t')
                 targetres[line[0]] = line[1:]
         return targetres
 
-    def __processAlign(self):
+    @staticmethod
+    def processAlign(index, fa, sal, formamide):
         """
         Process the bowtie command on the air
         """
@@ -151,8 +255,8 @@ class BlcokParser():
         params = '--no-hd -t -k 10 --local -D 20 -R 3 -N 1 -L 20 -i C,4 --score-min G,1,4 --end-to-end'
         bowtie2comm = [
             bowtie2,
-            '-x', self.index,
-            '-U', self.fa,
+            '-x', index,
+            '-U', fa,
             params
         ]
 
@@ -164,10 +268,13 @@ class BlcokParser():
 
         result, err = proc.communicate()
         if not result:
-            raise IndexError("Could not locate a Bowtie index corresponding to basename \"{}\"".format(self.index))
+            err = err.decode()
+            if "ERR" in err:
+                raise IndexError("Could not locate a Bowtie index corresponding to basename \"{}\"".format(index))
+
 
         parsing = [
-            SAM(line, self.sal, self.formamide)
+            SAM(line, sal, formamide)
             for line in result.decode('utf-8').splitlines()
         ]
 
@@ -289,7 +396,7 @@ def _parse_args():
         help='if True, the bowtie2 alignment results will stroe in the tmp.sam file.default:False'
     )
     group.add_option(
-        '-p', '--probelength', action='store', default=None, type=int, dest='probelength',
+        '-p', '--probelength', action='store', default=70, type=int, dest='probelength',
         help='probelength.'
     )
 
@@ -304,7 +411,7 @@ def _parse_args():
 
 def main():
     options = _parse_args()
-    samresult = BlcokParser(
+    samresult = JuncParser(
         options.file,
         options.index,
         options.targets,
@@ -314,6 +421,7 @@ def main():
         options.probelength,
         options.verbose
     )
+    # samresult.__filter()
 
 
 if __name__ == '__main__':

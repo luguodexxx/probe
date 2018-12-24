@@ -1,37 +1,7 @@
 #!/usr/bin/env python
-# --------------------------------------------------------------------------
-# OligoMiner
-# blockParse.py
-#
-# (c) 2017 Molecular Systems Lab
-#
-# Wyss Institute for Biologically-Inspired Engineering
-# Harvard University
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-# --------------------------------------------------------------------------
-
-# Specific script name.
-scriptName = 'blockParse'
-
-# Specify script version.
-Version = '1.8'
+"""
+This scipt were slightly modified from OligoMiner.
+"""
 
 # Import module for handling input arguments.
 import argparse
@@ -878,7 +848,7 @@ def main():
                                             'single-entry FASTA files are supported.  Returns a .fastq file, which '
                                             'can be inputted into short read alignment programs. Optionally, a '
                                             '.bed file can be outputted instead if \'-b\' is flagged. Tm values '
-                                            'are corrected for [Na+] and [formamide].' % (scriptName, Version))
+                                            'are corrected for [Na+] and [formamide].' % ("blockparser", "0.0.0"))
     requiredNamed = userInput.add_argument_group('required arguments')
     requiredNamed.add_argument('-f', '--file', action='store', required=True,
                                help='The FASTA file to find probes in')
@@ -1015,10 +985,10 @@ def main():
     # if this code is ever hosted online.
     exec('nn_table = mt.%s' % args.nn_table, None, globals())
     # exec ('nn_table = mt.{}'.format(args.nn_table))
-    print([inputFile, l, L, gcPercent, GCPercent, nn_table, tm, TM,
-           X, sal, form, sp, conc1, conc2, headerVal, bedVal,
-           OverlapModeVal, verbocity, reportVal, debugVal, metaVal,
-           outNameVal])
+    # print([inputFile, l, L, gcPercent, GCPercent, nn_table, tm, TM,
+    #        X, sal, form, sp, conc1, conc2, headerVal, bedVal,
+    #        OverlapModeVal, verbocity, reportVal, debugVal, metaVal,
+    #        outNameVal])
     runSequenceCrawler(inputFile, l, L, gcPercent, GCPercent, nn_table, tm, TM,
                        X, sal, form, sp, conc1, conc2, headerVal, bedVal,
                        OverlapModeVal, verbocity, reportVal, debugVal, metaVal,

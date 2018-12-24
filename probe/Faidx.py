@@ -277,6 +277,5 @@ def main(file):
     seq = test.fetch('ENSMUST00000005815.6', 1, 6000, "+")
     print(seq.complement.reverse)
 
-
 if __name__ == '__main__':
     main(sys.argv[1])
