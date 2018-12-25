@@ -260,7 +260,8 @@ __________              ___.          ________                .__
                                 help='whole genome fasta file')
     junction_parse.set_defaults(func=junction)
 
-    circ_parse = subparsers.add_parser('circ', parents=[userInput], help='For circRNA junction')
+    circ_parse = subparsers.add_parser('circ', parents=[userInput], help='For circRNA junction, still in test')
+    index_parse = subparsers.add_parser('index', parents=[userInput], help='For circRNA junction, still in test')
 
     if len(sys.argv) == 1:
         parser.print_help()

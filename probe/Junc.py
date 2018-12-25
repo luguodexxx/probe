@@ -6,7 +6,7 @@ import os
 import re
 import argparse
 from collections import defaultdict
-from Faidx import Faidx
+from .Faidx import Faidx
 
 
 class Junction:
