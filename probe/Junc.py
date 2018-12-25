@@ -155,8 +155,8 @@ class Junction:
                     motif1_, motif2_, motif_ = Junction.junctionmotif(self.genome, chr, st, ed, self.strand, offset=1)
                     if Junction.checkmotif(motif_, SJMOTIF):
                         LOG.warn(
-                            msg="It seems the junction sites [{}] were on exon, not intronic. Already corrected.".format(
-                                self._name))
+                            msg="{}\tIt seems the junction sites [{}] were on exon, not intronic. Already corrected.".format(
+                                LOG.name, self._name))
                         motif1, motif2, motif = motif1_, motif2_, motif_
                         seq1, seq2, seq = Junction.junctionseq(self.genome, chr, st, ed, self.strand, offset=1)
 
@@ -212,7 +212,7 @@ def fetchjunc(genome, junctionfile, outdir):
     :param args:
     :return:
     """
-    LOG.info(msg="Fetching the sequence from {} list.".format(junctionfile))
+    LOG.info(msg="{}\tFetching the sequence from {} list.".format(LOG.name, junctionfile))
     filelist = []
     if outdir != "./":
         checkdir(outdir)

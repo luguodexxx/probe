@@ -10,6 +10,7 @@ def generateinfo(fasta, targetfile, outputprefix):
     :param outputprefix:
     :return:
     """
+
     targetpool = defaultdict(list)
     fastadict = defaultdict(lambda: defaultdict(list))
     fastalist = []
@@ -27,7 +28,6 @@ def generateinfo(fasta, targetfile, outputprefix):
                 gid = i[3].split(':')[1].split('.')[0]
                 ttype = i[5].split(':')[1]
                 tid = i[0][1:]
-                # print(gid, ttype, tid)
                 if ttype == 'protein_coding' and gid in targetpool:
                     OUT.write('\t'.join([tid, '\t'.join(targetpool[gid])]) + '\n')
                     fastadict[tid]["header"] = i

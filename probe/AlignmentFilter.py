@@ -147,7 +147,7 @@ class JuncParser():
         self.samresult = BlockParser.processAlign(self.index, self.fa, self.sal, self.formamide)
         self.filter = self.__filter()
 
-        LOG.info(msg=" {}\tWriting the results to {}".format(LOG.name, self.outfile))
+        LOG.info(msg="{}\tWriting the results to {}".format(LOG.name, self.outfile))
 
         with open(self.outfile, 'w') as OUT:
             OUT.write('\t'.join(
@@ -226,12 +226,12 @@ class BlockParser():
 
         if self.verbose:
 
-            LOG.info(msg=" {}\tWriting the bowtie2 results to {}".format(LOG.name, self.outfile + '.sam'))
+            LOG.info(msg="{}\tWriting the bowtie2 results to {}".format(LOG.name, self.outfile + '.sam'))
             with open(self.outfile + '.sam', 'w') as tmpSAM:
                 for read in self.samresult:
                     tmpSAM.write(str(read) + '\n')
 
-        LOG.info(msg=" {}\tWriting the results to {}".format(LOG.name, self.outfile))
+        LOG.info(msg="{}\tWriting the results to {}".format(LOG.name, self.outfile))
         with open(self.outfile, 'w') as OUT:
             OUT.write('\t'.join(
                 ['FakeChrom', 'left', 'right', 'afterRC', 'beforeRC',

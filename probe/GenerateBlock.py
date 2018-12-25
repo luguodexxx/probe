@@ -3,21 +3,19 @@
 This scipt were slightly modified from OligoMiner.
 """
 
-# Import module for handling input arguments.
 import argparse
-# Import the math module.
 import math
-# Import regex module.
 import re
-# Import timeit module and record start time. This provides a rough estimate of
-# the wall clock time it takes to run the script.
 import timeit
 
 from Bio import SeqIO
 from Bio.Alphabet import IUPAC
 from Bio.Seq import Seq
-# Import Biopython modules.
 from Bio.SeqUtils import MeltingTemp as mt
+
+from .helper import set_logging
+
+LOG = set_logging("GenerateBlock")
 
 
 class SequenceCrawler:
@@ -331,9 +329,9 @@ class SequenceCrawler:
                                            % (self.l, (self.start + i)))
                 self.N_int_fail_.append(1)
                 if self.debugVal:
-                    print('Sequence window of %d bases beginning at %d failed '
-                          'due to the presence of an interspersed \'N\' base' \
-                          % (self.l, (self.start + i)))
+                    LOG.info('Sequence window of %d bases beginning at %d failed '
+                             'due to the presence of an interspersed \'N\' base' \
+                             % (self.l, (self.start + i)))
 
             # Report if failure is due to the presence of prohibited sequences.
             if not self.prohibitCheck(seq8):
@@ -354,9 +352,9 @@ class SequenceCrawler:
                                               format_match))
                     self.prohib_fail.append(1)
                 if self.debugVal:
-                    print('Sequence window of %d bases beginning at %d failed '
-                          'due to the presence of prohibited sequence(s) %s' \
-                          % (self.l, (self.start + i), format_match))
+                    LOG.info('Sequence window of %d bases beginning at %d failed '
+                             'due to the presence of prohibited sequence(s) %s' \
+                             % (self.l, (self.start + i), format_match))
 
     def probeCheck(self, seq5, ind, i, j):
         """Checks a probe properties based on the current sliding window."""
@@ -382,9 +380,9 @@ class SequenceCrawler:
                                            % (self.l, (self.start + i)))
                     self.N_int_fail.append(1)
                 if self.debugVal:
-                    print('Sequence window of %d bases beginning at %d '
-                          'failed due to the presence of an interspersed \'N\' '
-                          'base' % (self.l, (self.start + i)))
+                    LOG.info('Sequence window of %d bases beginning at %d '
+                             'failed due to the presence of an interspersed \'N\' '
+                             'base' % (self.l, (self.start + i)))
 
             # Report if failure is due to the presence of prohibited sequences.
             if not self.prohibitCheck(seq5):
@@ -405,9 +403,9 @@ class SequenceCrawler:
                                               format_match))
                     self.prohib_fail.append(1)
                 if self.debugVal:
-                    print('Sequence window of %d bases beginning at %d failed '
-                          'due to the presence of prohibited sequence(s) %s' \
-                          % (self.l, (self.start + i), format_match))
+                    LOG.info('Sequence window of %d bases beginning at %d failed '
+                             'due to the presence of prohibited sequence(s) %s' \
+                             % (self.l, (self.start + i), format_match))
 
             # Report if Tm too low/high.
             if not self.tmCheck(seq5, ind, i, j):
@@ -424,12 +422,12 @@ class SequenceCrawler:
                                                   self.tm, self.TM))
                         self.Tm_fail_low.append(1)
                     if self.debugVal:
-                        print('Sequence window of %d bases beginning at %d '
-                              'failed due to Tm of %0.2f being below the '
-                              'allowed range of %d-%d' \
-                              % ((self.l + j), (self.start + i),
-                                 self.probeTmOpt(seq5, ind, i, j),
-                                 self.tm, self.TM))
+                        LOG.info('Sequence window of %d bases beginning at %d '
+                                 'failed due to Tm of %0.2f being below the '
+                                 'allowed range of %d-%d' \
+                                 % ((self.l + j), (self.start + i),
+                                    self.probeTmOpt(seq5, ind, i, j),
+                                    self.tm, self.TM))
                 if self.probeTmOpt(seq5, ind, i, j) > self.TM:
                     if self.reportVal:
                         self.reportList.append('Sequence window of %d bases '
@@ -443,12 +441,12 @@ class SequenceCrawler:
                                                   self.tm, self.TM))
                         self.Tm_fail_high.append(1)
                     if self.debugVal:
-                        print('Sequence window of %d bases beginning at %d '
-                              'failed due to Tm of %0.2f being above the '
-                              'allowed range of %d-%d' \
-                              % ((self.l + j), (self.start + i),
-                                 self.probeTmOpt(seq5, ind, i, j),
-                                 self.tm, self.TM))
+                        LOG.info('Sequence window of %d bases beginning at %d '
+                                 'failed due to Tm of %0.2f being above the '
+                                 'allowed range of %d-%d' \
+                                 % ((self.l + j), (self.start + i),
+                                    self.probeTmOpt(seq5, ind, i, j),
+                                    self.tm, self.TM))
 
             # Report if %G+C too low/high.
             if not self.gcCheck(seq5):
@@ -466,12 +464,12 @@ class SequenceCrawler:
                                                   self.GCPercent))
                         self.gc_fail_low.append(1)
                     if self.debugVal:
-                        print('Sequence window of %d bases beginning at %d '
-                              'failed due to %%G+C of %0.2f being below the '
-                              'allowed range of %d-%d' \
-                              % ((self.l + j), (self.start + i), \
-                                 (self.numGC * 100.0 / len(seq5)), \
-                                 self.gcPercent, self.GCPercent))
+                        LOG.info('Sequence window of %d bases beginning at %d '
+                                 'failed due to %%G+C of %0.2f being below the '
+                                 'allowed range of %d-%d' \
+                                 % ((self.l + j), (self.start + i), \
+                                    (self.numGC * 100.0 / len(seq5)), \
+                                    self.gcPercent, self.GCPercent))
                 if (self.numGC * 100.0 / len(seq5)) > self.GCPercent:
                     if self.reportVal:
                         self.reportList.append('Sequence window of %d bases '
@@ -486,12 +484,12 @@ class SequenceCrawler:
                                                   self.GCPercent))
                         self.gc_fail_high.append(1)
                     if self.debugVal:
-                        print('Sequence window of %d bases beginning at %d '
-                              'failed due to %%G+C of %0.2f being below the '
-                              'allowed range of %d-%d' \
-                              % ((self.l + j), (self.start + i),
-                                 (self.numGC * 100.0 / len(seq5)), \
-                                 self.gcPercent, self.GCPercent))
+                        LOG.info('Sequence window of %d bases beginning at %d '
+                                 'failed due to %%G+C of %0.2f being below the '
+                                 'allowed range of %d-%d' \
+                                 % ((self.l + j), (self.start + i),
+                                    (self.numGC * 100.0 / len(seq5)), \
+                                    self.gcPercent, self.GCPercent))
 
     def BedprobeTm(self, seq7):
         """Tm calculation function for use with .bed output."""
@@ -602,17 +600,17 @@ class SequenceCrawler:
                                           (self.start + i - 1)))
                 self.N_block_fail.append(1)
             if self.debugVal:
-                print('Skipping %d base window %d-%d because it contains only '
-                      '\'N\' bases' \
-                      % (self.l, (self.start + i - self.l),
-                         (self.start + i - 1)))
+                LOG.info('Skipping %d base window %d-%d because it contains only '
+                         '\'N\' bases' \
+                         % (self.l, (self.start + i - self.l),
+                            (self.start + i - 1)))
         self.resetTmVals(i, self.l)
 
         # Iterate over input sequence, vetting candidate probe sequences.
         while i < int(blockLen) - int(self.l):
             # Print status to terminal.
             if i % 100000 == 0:
-                print('%d of %d' % (i, blockLen))
+                LOG.info('{} {} of {}'.format(LOG.name, i, blockLen))
 
             # Find next sequence without an unknown base.
             ncheckval = self.Ncheckopt(self.block[i:i + self.l])
@@ -627,10 +625,10 @@ class SequenceCrawler:
                                               (self.start + i - 1)))
                     self.N_block_fail.append(1)
                 if self.debugVal:
-                    print('Skipping %d base window %d-%d because it contains '
-                          'only \'N\' bases' \
-                          % (self.l, (self.start + i - self.l),
-                             (self.start + i - 1)))
+                    LOG.info('Skipping %d base window %d-%d because it contains '
+                             'only \'N\' bases' \
+                             % (self.l, (self.start + i - self.l),
+                                (self.start + i - 1)))
             if self.seqCheck(self.block[i:i + self.l], i):
 
                 # Search for a sequence that starts at this index and satisfies
@@ -648,15 +646,15 @@ class SequenceCrawler:
                     cands.append((str(startPos), str(startPos + j + self.l - 1),
                                   str(self.block[i:i + j + self.l])))
                     if self.verbocity:
-                        print('Picking a candidate probe of %d bases starting '
-                              'at base %d' % (self.l + j, startPos))
+                        LOG.info('Picking a candidate probe of %d bases starting '
+                                 'at base %d' % (self.l + j, startPos))
                     if self.reportVal:
                         self.reportList.append('Picking a candidate probe of '
                                                '%d bases starting at base %d' \
                                                % (self.l + j, startPos))
                     if self.debugVal:
-                        print('Picking a candidate probe of %d bases starting '
-                              'at base %d' % (self.l + j, startPos))
+                        LOG.info('Picking a candidate probe of %d bases starting '
+                                 'at base %d' % (self.l + j, startPos))
                     previousend = i + j + self.l - 1
 
                 # Update the next index to search from. Probes must be
@@ -711,6 +709,7 @@ class SequenceCrawler:
             # outList2 = sorted(outList2,key = lambda x:(int(x[1]),int(x[2])))
             outList = joinseq(outList)
 
+            LOG.info("{}: {} contiguous probes identified in {}.".format(LOG.name, len(outList), outName))
             # Write the output file.
             output.write('\n'.join(outList))
             output.close()
@@ -718,12 +717,12 @@ class SequenceCrawler:
         # Print info about the results to terminal.
         probeNum = len(cands)
         if probeNum == 0:
-            print('No candidate probes discovered')
+            LOG.info('No candidate probes discovered')
         else:
             probeWindow = float((int(cands[-1][1]) - int(cands[0][0]))) / 1000
             probeDensity = float((float(probeNum) / probeWindow))
-            print('%d candidate probes identified in %0.2f kb yielding %0.2f '
-                  'candidates/kb' % (probeNum, probeWindow, probeDensity))
+            LOG.info('[Discontiguous probes]:%d candidate probes identified in %0.2f kb yielding %0.2f '
+                     'candidates/kb' % (probeNum, probeWindow, probeDensity))
 
         # Write meta information to a .txt file if desired.
         if self.metaVal:
