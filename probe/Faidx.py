@@ -8,6 +8,7 @@ import os
 from collections import OrderedDict, namedtuple
 
 
+
 class IndexRecord(
     namedtuple('IndexRecord',
                ['chrlength', 'offset', 'clen', 'blen'])):
@@ -276,6 +277,7 @@ def main(file):
     test = Faidx(file)  # /Users/zhouran/opt/proj/2018-11-17-probe/rebuild/Probes_evaluation/testFaidx.fa
     seq = test.fetch('ENSMUST00000005815.6', 1, 6000, "+")
     print(seq.complement.reverse)
+
 
 if __name__ == '__main__':
     main(sys.argv[1])

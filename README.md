@@ -9,9 +9,13 @@ __________              ___.          ________                .__
 </pre>
 
 
-ProbeDesign, a simple command line to generate probe. But it's still not completed.
+ProbeDesign, a simple command line to generate probe. It's  ~~still not~~  completed.
+
+
+
+
 
 TODO:
-
 1. 生成index的工具
+
 ~~2. circRNA~~

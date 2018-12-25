@@ -10,16 +10,8 @@ from .GeneToTrans import generateinfo
 from .GenerateBlock import runSequenceCrawler
 from .AlignmentFilter import BlockParser, JuncParser
 from .Junc import fetchjunc
+from .version import __version__
 from Bio.SeqUtils import MeltingTemp as mt
-
-"""
-这是第一个指令，利用基因ID来进行探针的设计的命令行整合
-核心指令：
-生成单个转录本序列和一个layer的配置文件信息。
-1. python /Users/zhouran/opt/proj/2018-11-17-probe/probe/GeneToTrans.py  ../Mus_musculus.GRCm38.cdna.all.fa ../layer_specific_2.txt
-2. python /Users/zhouran/opt/proj/2018-11-17-probe/probe/GenerateBlock.py -f ENSMUST00000020329.12.fasta -l 15 -L 22 -g 40 -G 60 -c 100 -C 300 -F 30 -O -o ENSMUST00000020329.12.block.fasta
-3. python /Users/zhouran/opt/proj/2018-11-17-probe/probe/AlignmentFilter.py -x ../GRCm38/GRCm38_mod -s 390 -F 20 -T transfer.trans.txt -f ENSMUST00000020329.12.block.fasta.fastq -o a -v
-"""
 
 
 def transcript(args):
@@ -131,17 +123,17 @@ __________              ___.          ________                .__
 
     userInput.add_argument('-faC', '--fastaC', action='store',
                            type=str,
-                           help='cDNA fasta file')
+                           help='cDNA fasta file, must be modified')
 
     userInput.add_argument('-ta', '--target', action='store',
                            type=str,
                            help='A config file')
     userInput.add_argument('-op', '--outprefix', action='store',
                            type=str,
-                           help='output dir prefix')
+                           help='output folder prefix')
     userInput.add_argument('-index', '--index', action='store',
                            type=str,
-                           help='bowtie2 index files, generate by modified cDNA fa.')
+                           help='bowtie2 index files, generate by modified cDNA fasta.')
     userInput.add_argument('-l', '--minLength', action='store', default=36,
                            type=int,
                            help='The minimum allowed probe length; default is '
@@ -248,7 +240,7 @@ __________              ___.          ________                .__
 
     subparsers = parser.add_subparsers(title='subcommands',
                                        description='valid subcommands',
-                                       help='additional help',
+                                       help='additional help, version: {}'.format(__version__),
                                        dest='action')
 
     transcript_parse = subparsers.add_parser('transcripts', parents=[userInput], help='For transcripts ID')
@@ -260,8 +252,8 @@ __________              ___.          ________                .__
                                 help='whole genome fasta file')
     junction_parse.set_defaults(func=junction)
 
-    circ_parse = subparsers.add_parser('circ', parents=[userInput], help='For circRNA junction, still in test')
-    index_parse = subparsers.add_parser('index', parents=[userInput], help='For circRNA junction, still in test')
+    circ_parse = subparsers.add_parser('circ', parents=[userInput], help='For circRNA junction')
+    index_parse = subparsers.add_parser('index', parents=[userInput], help='For index, still in test')
 
     if len(sys.argv) == 1:
         parser.print_help()

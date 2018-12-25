@@ -7,6 +7,11 @@ import re
 import argparse
 from collections import defaultdict
 from .Faidx import Faidx
+from .helper import set_logging
+
+SJMOTIF = set(["GT@AG", "CT@AC", "GC@AG", "CT@GC", "AT@AC", "GT@AT"])
+
+LOG = set_logging("JunctionFetch")
 
 
 class Junction:
@@ -43,13 +48,86 @@ class Junction:
     def genome(self):
         return self._genome
 
-    @property
-    def juncmotif(self):
+    @staticmethod
+    def checkmotif(motif, motifset):
         """
-        This is for return the canonical junction motif
+        :param motif:
+        :param motifset:
         :return:
         """
-        motif
+        if motif in motifset:
+            return True
+        return False
+
+    @staticmethod
+    def junctionseq(faidx, chr, st, ed, strand, offset=0):
+        """
+
+        :param faidx: genome Faidx
+        :param chr: chromosome name
+        :param st: start site
+        :param ed: end site
+        :param strand: plus or minus
+        :param offset: for checking whether right site
+        :return:
+        """
+        assert isinstance(faidx, Faidx), "Faidx file must be a <class: Faidx>, not {}".format(faidx.__class__)
+        seq1 = faidx.fetch(chr, int(st) - 40 + offset, int(st) - 1 + offset, strand)
+        seq2 = faidx.fetch(chr, int(ed) - offset, int(ed) + 39 - offset, strand)
+        if strand == "+":
+            seq = seq1.realseq + seq2.realseq
+        else:
+            seq = seq2.realseq + seq1.realseq
+
+        return seq1, seq2, seq
+
+    @staticmethod
+    def junctionmotif(faidx, chr, st, ed, strand, offset=0):
+        """
+
+        :param faidx:
+        :param chr:
+        :param st:
+        :param ed:
+        :param strand:
+        :param offset:
+        :return:
+        """
+        assert isinstance(faidx, Faidx), "Faidx file must be a <class: Faidx>, not {}".format(faidx.__class__)
+        motif1 = faidx.fetch(chr, int(st) + offset, int(st) + 1 + offset, strand)
+        motif2 = faidx.fetch(chr, int(ed) - 1 - offset, int(ed) - offset, strand)
+
+        if strand == "+":
+            motif = motif1.realseq + "@" + motif2.realseq
+        else:
+            motif = motif2.realseq + "@" + motif1.realseq
+
+        return motif1, motif2, motif
+
+    @staticmethod
+    def circseq(faidx, chr, st, ed, strand):
+        """
+
+        :param faidx:
+        :param chr:
+        :param st:
+        :param ed:
+        :param strand:
+        :return:
+        """
+        assert isinstance(faidx, Faidx), "Faidx file must be a <class: Faidx>, not {}".format(faidx.__class__)
+        seq1 = faidx.fetch(chr, int(st), int(st) + 39, strand)
+        motif1 = faidx.fetch(chr, int(st) - 1, int(st), strand)
+
+        seq2 = faidx.fetch(chr, int(ed) - 40, int(ed) - 1, strand)
+        motif2 = faidx.fetch(chr, int(ed), int(ed) + 1, strand)
+        if strand == "+":
+            seq = seq2.realseq + seq1.realseq
+            motif = motif2.realseq + "@" + motif1.realseq
+        else:
+            seq = seq1.realseq + seq2.realseq
+            motif = motif1.realseq + "@" + motif2.realseq
+        return seq, motif
 
     @property
     def junc_for_seq(self):
@@ -64,33 +142,30 @@ class Junction:
         for j in self._info:
             chr, st, ed = re.split("-|:", j[:-1])
             if not self.circ:
-                seq1 = self.genome.fetch(chr, int(st) - 40, int(st) - 1, self.strand)
-                motif1 = self.genome.fetch(chr, int(st), int(st) + 1, self.strand)
-                seq2 = self.genome.fetch(chr, int(ed), int(ed) + 39, self.strand)
-                motif2 = self.genome.fetch(chr, int(ed) - 1, int(ed), self.strand)
-                if self.strand == "+":
-                    seq = seq1.realseq + seq2.realseq
-                else:
-                    seq = seq2.realseq + seq1.realseq
+                motif1, motif2, motif = Junction.junctionmotif(self.genome, chr, st, ed, self.strand)
+                seq1, seq2, seq = Junction.junctionseq(self.genome, chr, st, ed, self.strand)
+
+                """
+                We checked the splicing motif at the junction site. 
+                if User gave a exon junction site, we would check the motif after correcting to intronic location.
+                
+                """
+
+                if not Junction.checkmotif(motif, SJMOTIF):
+                    motif1_, motif2_, motif_ = Junction.junctionmotif(self.genome, chr, st, ed, self.strand, offset=1)
+                    if Junction.checkmotif(motif_, SJMOTIF):
+                        LOG.warn(
+                            msg="It seems the junction sites [{}] were on exon, not intronic. Already corrected.".format(
+                                self._name))
+                        motif1, motif2, motif = motif1_, motif2_, motif_
+                        seq1, seq2, seq = Junction.junctionseq(self.genome, chr, st, ed, self.strand, offset=1)
+
                 res[j]["seq"] = seq
-                if self.strand == "+":
-                    res[j]["motif"] = motif1.realseq + "@" + motif2.realseq
-                else:
-                    res[j]["motif"] = motif2.realseq + "@" + motif1.realseq
+                res[j]["motif"] = motif
             else:
-                seq1 = self.genome.fetch(chr, int(st), int(st) + 39, self.strand)
-                motif1 = self.genome.fetch(chr, int(st) - 1, int(st), self.strand)
-                seq2 = self.genome.fetch(chr, int(ed) - 40, int(ed) - 1, self.strand)
-                motif2 = self.genome.fetch(chr, int(ed), int(ed) + 1, self.strand)
-                if self.strand == "+":
-                    seq = seq2.realseq + seq1.realseq
-                else:
-                    seq = seq2.realseq + seq1.realseq
-                res[j]["seq"] = seq
-                if self.strand == "+":
-                    res[j]["motif"] = motif2.realseq + "@" + motif1.realseq
-                else:
-                    res[j]["motif"] = motif2.realseq + "@" + motif1.realseq
+                seq, motif = Junction.circseq(self.genome, chr, st, ed, strand)
+                res[j]["motif"] = motif
+
         return res
 
 
@@ -137,7 +212,7 @@ def fetchjunc(genome, junctionfile, outdir):
     :param args:
     :return:
     """
-
+    LOG.info(msg="Fetching the sequence from {} list.".format(junctionfile))
     filelist = []
     if outdir != "./":
         checkdir(outdir)

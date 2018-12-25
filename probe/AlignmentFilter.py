@@ -36,8 +36,10 @@ from Bio.SeqUtils import MeltingTemp as mt
 from Bio.SeqUtils import GC
 from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC
+from .helper import set_logging
 
 SJMOTIF = set(["GT@AG", "CT@AC", "GC@AG", "CT@GC", "AT@AC", "GT@AT"])
+LOG = set_logging("AlignmentFilter")
 
 
 class IndexError(Exception):
@@ -151,6 +153,8 @@ class JuncParser():
         self.samresult = BlockParser.processAlign(self.index, self.fa, self.sal, self.formamide)
         self.filter = self.__filter()
 
+        LOG.info(msg=" {}\tWriting the results to {}".format(LOG.name, self.outfile))
+
         with open(self.outfile, 'w') as OUT:
             OUT.write('\t'.join(
                 ['FakeChrom', 'motif', 'canonical', 'left', 'right', 'afterRC', 'beforeRC',
@@ -228,10 +232,13 @@ class BlockParser():
         self.filter = self.__filter()
 
         if self.verbose:
+
+            LOG.info(msg=" {}\tWriting the bowtie2 results to {}".format(LOG.name, self.OUTfile + '.sam'))
             with open(self.OUTfile + '.sam', 'w') as tmpSAM:
                 for read in self.samresult:
                     tmpSAM.write(str(read) + '\n')
 
+        LOG.info(msg=" {}\tWriting the results to {}".format(LOG.name, self.outfile))
         with open(self.OUTfile, 'w') as OUT:
             OUT.write('\t'.join(
                 ['FakeChrom', 'left', 'right', 'afterRC', 'beforeRC',
@@ -271,7 +278,7 @@ class BlockParser():
             params
         ]
 
-        print('Bowtie2 command:\n {}'.format(' '.join(bowtie2comm)))
+        LOG.info(msg='{}\tBowtie2 command:\n {}'.format(LOG.name, ' '.join(bowtie2comm)))
         proc = subprocess.Popen(
             bowtie2comm,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE
