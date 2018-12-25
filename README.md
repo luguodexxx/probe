@@ -12,7 +12,21 @@ __________              ___.          ________                .__
 ProbeDesign, a simple command line to generate probe. It's  ~~still not~~  completed.
 
 
+### INSTALL
+python >= 3.6
+```shell
+python setup.py install
+```
+### UASGE
+There are two function.
 
+#### transcript
+
+Generate the probe based on the transcript ID.
+
+#### junction
+
+Generate the probe based on the junction information.
 
 
 TODO:
