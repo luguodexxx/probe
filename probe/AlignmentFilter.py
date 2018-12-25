@@ -214,7 +214,7 @@ class BlockParser():
         self._targetfile = tagetfile
         # self.TARGET = set([i.strip().split('\t')[0] for i in open(TARGETfile).readlines()])
         self.TARGET = BlockParser.processtarget(self._targetfile)
-        self.OUTfile = outfile
+        self.outfile = outfile
         self.sal = sal
         self.verbose = verbose
         self.formamide = formamide
@@ -226,13 +226,13 @@ class BlockParser():
 
         if self.verbose:
 
-            LOG.info(msg=" {}\tWriting the bowtie2 results to {}".format(LOG.name, self.OUTfile + '.sam'))
-            with open(self.OUTfile + '.sam', 'w') as tmpSAM:
+            LOG.info(msg=" {}\tWriting the bowtie2 results to {}".format(LOG.name, self.outfile + '.sam'))
+            with open(self.outfile + '.sam', 'w') as tmpSAM:
                 for read in self.samresult:
                     tmpSAM.write(str(read) + '\n')
 
         LOG.info(msg=" {}\tWriting the results to {}".format(LOG.name, self.outfile))
-        with open(self.OUTfile, 'w') as OUT:
+        with open(self.outfile, 'w') as OUT:
             OUT.write('\t'.join(
                 ['FakeChrom', 'left', 'right', 'afterRC', 'beforeRC',
                  "PLPsequence", 'Tm', 'isoform_nums', 'isoforms']) + '\n')
