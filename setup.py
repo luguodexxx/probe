@@ -20,9 +20,9 @@ setup(name='probedesign',
       ],
       keywords='RNAprobe',
       packages=find_packages(),
-      # install_requires=[
-          # 'biopython'
-      # ],
+      install_requires=[
+          'biopython'
+      ],
       entry_points={
           'console_scripts': [
               'probedesign=probe.command_parser:main'
