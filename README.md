@@ -1,4 +1,4 @@
-# probe design
+## ProbeDesign: A RNA probe design tools [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 <pre>
 __________              ___.          ________                .__               
 \______   \_______  ____\_ |__   ____ \______ \   ____   _____|__| ____   ____  
@@ -19,3 +19,5 @@ TODO:
 1. 生成index的工具
 
 ~~2. circRNA~~
+### Reference
+We generate the probe followed the same filter conditions with blockParse.py in [OligMiner](https://github.com/brianbeliveau/OligoMiner)

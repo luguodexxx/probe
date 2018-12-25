@@ -125,12 +125,6 @@ def locationfilter(fake_chrname):
         return False
 
 
-# class CircParser():
-#     """
-#     CircRNA parser, uncheck
-#     """
-#     def __init__(self):
-
 class JuncParser():
     """
     JunctParser
@@ -168,7 +162,6 @@ class JuncParser():
 
     def __filter(self):
         """
-        这里还要准备一个文件
         :return:
         """
 
@@ -278,7 +271,7 @@ class BlockParser():
             params
         ]
 
-        LOG.info(msg='{}\tBowtie2 command:\n {}'.format(LOG.name, ' '.join(bowtie2comm)))
+        LOG.info(msg='{}\tBowtie2 command: {}'.format(LOG.name, ' '.join(bowtie2comm)))
         proc = subprocess.Popen(
             bowtie2comm,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE
