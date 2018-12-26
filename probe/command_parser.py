@@ -34,14 +34,8 @@ def transcript(args):
     sal = args.salt
     form = args.formamide
     sp = args.Spacing
-    headerVal = args.header
-    bedVal = args.bed
     OverlapModeVal = args.OverlapMode
     verbocity = args.verbose
-    verbocityblock = False
-    reportVal = args.Report
-    debugVal = args.Debug
-    metaVal = args.Meta
     index = args.index
     probelength = args.probelength
 
@@ -57,10 +51,8 @@ def transcript(args):
     falist = generateinfo(fasta, targetfile, outputprefix)
     for sub in falist:
         subprefix = os.path.splitext(sub)[0]
-        runSequenceCrawler(sub, l, L, gcPercent, GCPercent, nn_table, tm, TM,
-                           X, sal, form, sp, conc1, conc2, headerVal, bedVal,
-                           OverlapModeVal, verbocityblock, reportVal, debugVal, metaVal,
-                           subprefix)
+        runSequenceCrawler(sub, l, L, gcPercent, GCPercent, nn_table, tm, TM, X, sal, form, sp, conc1, conc2,
+                           OverlapModeVal, subprefix)
         BlockParser('.'.join([subprefix, 'fastq']), index, '.'.join([outputprefix, 'layerinfo.txt']),
                     '.'.join([subprefix, 'result']), sal, form, probelength, verbose=verbocity)
 
@@ -80,14 +72,8 @@ def junction(args):
     sal = args.salt
     form = args.formamide
     sp = args.Spacing
-    headerVal = args.header
-    bedVal = args.bed
     OverlapModeVal = args.OverlapMode
     verbocity = args.verbose
-    verbocityblock = False
-    reportVal = args.Report
-    debugVal = args.Debug
-    metaVal = args.Meta
     index = args.index
     probelength = args.probelength
 
@@ -103,10 +89,9 @@ def junction(args):
     falist = fetchjunc(fastaG, targetfile, outputprefix)
     for sub in falist:
         subprefix = os.path.splitext(sub)[0]
-        runSequenceCrawler(sub, l, L, gcPercent, GCPercent, nn_table, tm, TM,
-                           X, sal, form, sp, conc1, conc2, headerVal, bedVal,
-                           OverlapModeVal, verbocityblock, reportVal, debugVal, metaVal,
-                           subprefix)
+        runSequenceCrawler(sub, l, L, gcPercent, GCPercent, nn_table, tm, TM, X, sal, form, sp, conc1, conc2,
+                           OverlapModeVal, subprefix)
+
         JuncParser('.'.join([subprefix, 'fastq']), index, os.path.join(outputprefix, 'config.txt'),
                    '.'.join([subprefix, 'result']), sal, form, probelength, verbose=verbocity)
 
@@ -121,10 +106,6 @@ __________              ___.          ________                .__
  
  |____|     |__|   \____/|___  /\___  >_______  /\___  >____  >__\___  /|___|  /
                              \/     \/        \/     \/     \/  /_____/      \/                              """))
-
-    userInput.add_argument('-faC', '--fastaC', action='store',
-                           type=str,
-                           help='cDNA fasta file, must be modified')
 
     userInput.add_argument('-ta', '--target', action='store',
                            type=str,
@@ -207,25 +188,6 @@ __________              ___.          ________                .__
                            default=False,
                            help='Turn on verbose mode to have probe mining'
                                 'progress print to Terminal. Off by default')
-    userInput.add_argument('-R', '--Report', action='store_true', default=False,
-                           help='Write a Report file detailing the results of '
-                                'each window of sequence considered by the '
-                                'script. The first set of lines give the '
-                                'occurrence of each possible failure mode for '
-                                'quick reference. Off by default. Note, '
-                                'selecting this option will slow the script '
-                                'considerably')
-    userInput.add_argument('-D', '--Debug', action='store_true', default=False,
-                           help='The same as -Report, but prints info to '
-                                'terminal instead of writing a log file. Off '
-                                'by default')
-    userInput.add_argument('-M', '--Meta', action='store_true', default=False,
-                           help='Write a text file containing meta information '
-                                'Off by default. Reports input file <tab> '
-                                'estimated runtime <tab> blockParse version '
-                                '<tab> candidates discovered <tab> span in kb '
-                                'covered by candidate probes <tab> candidate '
-                                'probes per kb')
     userInput.add_argument('-pl', '--probelength', action='store', type=int, default=70,
                            help='PLP length,default:70')
 
@@ -245,6 +207,9 @@ __________              ___.          ________                .__
                                        dest='action')
 
     transcript_parse = subparsers.add_parser('transcripts', parents=[userInput], help='For transcripts ID')
+    transcript_parse.add_argument('-faC', '--fastaC', action='store',
+                                  type=str,
+                                  help='cDNA fasta file, must be modified')
     transcript_parse.set_defaults(func=transcript)
 
     junction_parse = subparsers.add_parser('junction', parents=[userInput], help='For splicing junction')

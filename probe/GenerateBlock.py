@@ -20,9 +20,8 @@ LOG = set_logging("GenerateBlock")
 
 class SequenceCrawler:
     def __init__(self, inputFile, l, L, gcPercent, GCPercent, nn_table, tm, TM,
-                 X, sal, form, sp, conc1, conc2, headerVal, bedVal,
-                 OverlapModeVal, verbocity, reportVal, debugVal, metaVal,
-                 outNameVal):
+                 X, sal, form, sp, conc1, conc2,
+                 OverlapModeVal, outNameVal):
         """Initializes a SequenceCrawler, which is used to efficiently scan a
         large sequence for satisfactory probe sequences."""
 
@@ -40,13 +39,7 @@ class SequenceCrawler:
         self.sp = sp
         self.conc1 = conc1
         self.conc2 = conc2
-        self.headerVal = headerVal
-        self.bedVal = bedVal
         self.OverlapModeVal = OverlapModeVal
-        self.verbocity = verbocity
-        self.reportVal = reportVal
-        self.debugVal = debugVal
-        self.metaVal = metaVal
         self.outNameVal = outNameVal
 
         # Build the variables required for efficient melting temperature
@@ -317,45 +310,6 @@ class SequenceCrawler:
         if self.Ncheckopt(seq8) == -1 and self.prohibitCheck(seq8):
             return True
 
-        # Report reasons for failure if desired.
-        if self.reportVal or self.debugVal:
-            # Report on N-base check first.
-            if self.Ncheckopt(seq8) != -1:
-                if self.reportVal:
-                    self.reportList.append('Sequence window of %d bases '
-                                           'beginning at %d failed due to the '
-                                           'presence of an interspersed \'N\' '
-                                           'base' \
-                                           % (self.l, (self.start + i)))
-                self.N_int_fail_.append(1)
-                if self.debugVal:
-                    LOG.info('Sequence window of %d bases beginning at %d failed '
-                             'due to the presence of an interspersed \'N\' base' \
-                             % (self.l, (self.start + i)))
-
-            # Report if failure is due to the presence of prohibited sequences.
-            if not self.prohibitCheck(seq8):
-                prohibList = str(self.X).split(',')
-                match_list = []
-                for pro in prohibList:
-                    match_group = re.search(pro, seq8, re.I)
-                    if match_group:
-                        foundSeq = match_group.group(0)
-                        match_list.append(foundSeq)
-                        format_match = ', '.join('%s' % x for x in match_list)
-                if self.reportVal:
-                    self.reportList.append('Sequence window of %d bases '
-                                           'beginning at %d failed due to the '
-                                           'presence of prohibited sequence(s) '
-                                           '%s' \
-                                           % (self.l, (self.start + i),
-                                              format_match))
-                    self.prohib_fail.append(1)
-                if self.debugVal:
-                    LOG.info('Sequence window of %d bases beginning at %d failed '
-                             'due to the presence of prohibited sequence(s) %s' \
-                             % (self.l, (self.start + i), format_match))
-
     def probeCheck(self, seq5, ind, i, j):
         """Checks a probe properties based on the current sliding window."""
         # First check for N bases and prohibited sequences
@@ -367,129 +321,6 @@ class SequenceCrawler:
         if self.Ncheckopt(seq5) == -1 and self.prohibitCheck(seq5) \
                 and self.tmCheck(seq5, ind, i, j) and self.gcCheck(seq5):
             return True
-
-        # Report reasons for failure if desired.
-        if self.reportVal or self.debugVal:
-            # Report on N-base check first
-            if self.Ncheckopt(seq5) != -1:
-                if self.reportVal:
-                    self.reportList.append('Sequence window of %d bases '
-                                           'beginning at %d failed due to the '
-                                           'presence of an interspersed \'N\' '
-                                           'base' \
-                                           % (self.l, (self.start + i)))
-                    self.N_int_fail.append(1)
-                if self.debugVal:
-                    LOG.info('Sequence window of %d bases beginning at %d '
-                             'failed due to the presence of an interspersed \'N\' '
-                             'base' % (self.l, (self.start + i)))
-
-            # Report if failure is due to the presence of prohibited sequences.
-            if not self.prohibitCheck(seq5):
-                prohibList = str(self.X).split(',')
-                match_list = []
-                for pro in prohibList:
-                    match_group = re.search(pro, seq5, re.I)
-                    if match_group:
-                        foundSeq = match_group.group(0)
-                        match_list.append(foundSeq)
-                        format_match = ', '.join('%s' % x for x in match_list)
-                if self.reportVal:
-                    self.reportList.append('Sequence window of %d bases '
-                                           'beginning at %d failed due to the '
-                                           'presence of prohibited sequence(s) '
-                                           '%s' \
-                                           % (self.l, (self.start + i),
-                                              format_match))
-                    self.prohib_fail.append(1)
-                if self.debugVal:
-                    LOG.info('Sequence window of %d bases beginning at %d failed '
-                             'due to the presence of prohibited sequence(s) %s' \
-                             % (self.l, (self.start + i), format_match))
-
-            # Report if Tm too low/high.
-            if not self.tmCheck(seq5, ind, i, j):
-                if self.probeTmOpt(seq5, ind, i, j) < self.tm:
-                    if self.reportVal:
-                        self.reportList.append('Sequence window of %d bases '
-                                               'beginning at %d failed due to '
-                                               'Tm of %0.2f being below the '
-                                               'allowed range of %d-%d' \
-                                               % ((self.l + j),
-                                                  (self.start + i),
-                                                  self.probeTmOpt(seq5, ind,
-                                                                  i, j),
-                                                  self.tm, self.TM))
-                        self.Tm_fail_low.append(1)
-                    if self.debugVal:
-                        LOG.info('Sequence window of %d bases beginning at %d '
-                                 'failed due to Tm of %0.2f being below the '
-                                 'allowed range of %d-%d' \
-                                 % ((self.l + j), (self.start + i),
-                                    self.probeTmOpt(seq5, ind, i, j),
-                                    self.tm, self.TM))
-                if self.probeTmOpt(seq5, ind, i, j) > self.TM:
-                    if self.reportVal:
-                        self.reportList.append('Sequence window of %d bases '
-                                               'beginning at %d failed due to '
-                                               'Tm of %0.2f being above the '
-                                               'allowed range of %d-%d' \
-                                               % ((self.l + j),
-                                                  (self.start + i),
-                                                  self.probeTmOpt(seq5, ind,
-                                                                  i, j),
-                                                  self.tm, self.TM))
-                        self.Tm_fail_high.append(1)
-                    if self.debugVal:
-                        LOG.info('Sequence window of %d bases beginning at %d '
-                                 'failed due to Tm of %0.2f being above the '
-                                 'allowed range of %d-%d' \
-                                 % ((self.l + j), (self.start + i),
-                                    self.probeTmOpt(seq5, ind, i, j),
-                                    self.tm, self.TM))
-
-            # Report if %G+C too low/high.
-            if not self.gcCheck(seq5):
-                if (self.numGC * 100.0 / len(seq5)) < self.gcPercent:
-                    if self.reportVal:
-                        self.reportList.append('Sequence window of %d bases '
-                                               'beginning at %d failed due to '
-                                               '%%G+C of %0.2f being below the '
-                                               'allowed range of %d-%d' \
-                                               % ((self.l + j),
-                                                  (self.start + i),
-                                                  (self.numGC * 100.0 \
-                                                   / len(seq5)), \
-                                                  self.gcPercent,
-                                                  self.GCPercent))
-                        self.gc_fail_low.append(1)
-                    if self.debugVal:
-                        LOG.info('Sequence window of %d bases beginning at %d '
-                                 'failed due to %%G+C of %0.2f being below the '
-                                 'allowed range of %d-%d' \
-                                 % ((self.l + j), (self.start + i), \
-                                    (self.numGC * 100.0 / len(seq5)), \
-                                    self.gcPercent, self.GCPercent))
-                if (self.numGC * 100.0 / len(seq5)) > self.GCPercent:
-                    if self.reportVal:
-                        self.reportList.append('Sequence window of %d bases '
-                                               'beginning at %d failed due to '
-                                               '%%G+C of %0.2f being below the '
-                                               'allowed range of %d-%d' \
-                                               % ((self.l + j),
-                                                  (self.start + i), \
-                                                  (self.numGC * 100.0 \
-                                                   / len(seq5)), \
-                                                  self.gcPercent,
-                                                  self.GCPercent))
-                        self.gc_fail_high.append(1)
-                    if self.debugVal:
-                        LOG.info('Sequence window of %d bases beginning at %d '
-                                 'failed due to %%G+C of %0.2f being below the '
-                                 'allowed range of %d-%d' \
-                                 % ((self.l + j), (self.start + i),
-                                    (self.numGC * 100.0 / len(seq5)), \
-                                    self.gcPercent, self.GCPercent))
 
     def BedprobeTm(self, seq7):
         """Tm calculation function for use with .bed output."""
@@ -544,37 +375,18 @@ class SequenceCrawler:
         with open(self.inputFile, 'r') as f:
             headerLine = f.readline()
 
-        if self.headerVal is None:
-            headerParse = headerLine.split(':')
+        headerParse = headerLine.split(':')
 
-            if len(headerParse) == 1:
-                chrom = headerLine.split('>')[1].split('\n')[0]
-                self.start = 1
-                stop = len(self.block)
-            elif 'range=' in headerLine:
-                chrom = headerLine.split('=')[1].split(':')[0]
-                self.start = int(str(headerLine).split(':')[1].split('-')[0])
-                stop = str(headerLine).split('-')[1].split(' ')[0]
+        if len(headerParse) == 1:
+            chrom = headerLine.split('>')[1].split('\n')[0]
+            self.start = 1
+        elif 'range=' in headerLine:
+            chrom = headerLine.split('=')[1].split(':')[0]
+            self.start = int(str(headerLine).split(':')[1].split('-')[0])
 
-            else:
-                chrom = 'chrom'
-                self.start = 1
-                stop = len(self.block)
         else:
-            chrom = self.headerVal.split(':')[0]
-            self.start = int(str(self.headerVal).split(':')[1].split('-')[0])
-            stop = str(self.headerVal).split(':')[1].split('-')[1]
-
-        # Make lists to hold Report info if desired.
-        if self.reportVal:
-            self.reportList = []
-            self.N_int_fail = []
-            self.N_block_fail = []
-            self.prohib_fail = []
-            self.Tm_fail_low = []
-            self.Tm_fail_high = []
-            self.gc_fail_low = []
-            self.gc_fail_high = []
+            chrom = 'chrom'
+            self.start = 1
 
         # Determine the size range the probe sequence can vary over.
         sizeRange = int(self.L) - int(self.l) + 1
@@ -593,17 +405,6 @@ class SequenceCrawler:
         while ncheckval != -1:
             i += ncheckval + 1
             ncheckval = self.Ncheckopt(self.block[i:i + self.l])
-            if self.reportVal:
-                self.reportList.append('Skipping %d base window %d-%d because '
-                                       'it contains only \'N\' bases' \
-                                       % (self.l, (self.start + i - self.l),
-                                          (self.start + i - 1)))
-                self.N_block_fail.append(1)
-            if self.debugVal:
-                LOG.info('Skipping %d base window %d-%d because it contains only '
-                         '\'N\' bases' \
-                         % (self.l, (self.start + i - self.l),
-                            (self.start + i - 1)))
         self.resetTmVals(i, self.l)
 
         # Iterate over input sequence, vetting candidate probe sequences.
@@ -617,18 +418,6 @@ class SequenceCrawler:
             while ncheckval != -1:
                 i += ncheckval + 1
                 ncheckval = self.Ncheckopt(self.block[i:i + self.l])
-                if self.reportVal:
-                    self.reportList.append('Skipping %d base window %d-%d '
-                                           'because it contains only \'N\' '
-                                           'bases' \
-                                           % (self.l, (self.start + i - self.l),
-                                              (self.start + i - 1)))
-                    self.N_block_fail.append(1)
-                if self.debugVal:
-                    LOG.info('Skipping %d base window %d-%d because it contains '
-                             'only \'N\' bases' \
-                             % (self.l, (self.start + i - self.l),
-                                (self.start + i - 1)))
             if self.seqCheck(self.block[i:i + self.l], i):
 
                 # Search for a sequence that starts at this index and satisfies
@@ -645,16 +434,7 @@ class SequenceCrawler:
                     startPos = self.start + i
                     cands.append((str(startPos), str(startPos + j + self.l - 1),
                                   str(self.block[i:i + j + self.l])))
-                    if self.verbocity:
-                        LOG.info('Picking a candidate probe of %d bases starting '
-                                 'at base %d' % (self.l + j, startPos))
-                    if self.reportVal:
-                        self.reportList.append('Picking a candidate probe of '
-                                               '%d bases starting at base %d' \
-                                               % (self.l + j, startPos))
-                    if self.debugVal:
-                        LOG.info('Picking a candidate probe of %d bases starting '
-                                 'at base %d' % (self.l + j, startPos))
+
                     previousend = i + j + self.l - 1
 
                 # Update the next index to search from. Probes must be
@@ -675,47 +455,29 @@ class SequenceCrawler:
         else:
             outName = self.outNameVal
 
-        if self.bedVal:
-            # Create the output file.
-            output = open('%s.bed' % outName, 'w')
+        # Create the output file.
+        output = open('%s.fastq' % outName, 'w')
 
-            # Create a list to hold the output.
-            outList = []
+        # Create a list to hold the output.
+        outList = []
+        # A list to hold arbitrary quality scores for each base in the
+        # candidate probe.
+        quals = ['~' * len(cands[i][2]) for i in range(len(cands))]
 
-            # Build the output file.
-            for i, (start, end, seq) in enumerate(cands):
-                outList.append((chrom, start, end, seq, self.BedprobeTm(seq)))
-                # outList.append('%s\t%s\t%s\t%s\t%s' % (chrom, start, end, seq,
-                # self.BedprobeTm(seq)))
-            # Write the output file.
-            outList = joinseq(outList, 'bed')
-            output.write('\n'.join(outList))
-            output.close()
-
-        else:
-            # Create the output file.
-            output = open('%s.fastq' % outName, 'w')
-
-            # Create a list to hold the output.
-            outList = []
-            # A list to hold arbitrary quality scores for each base in the
-            # candidate probe.
-            quals = ['~' * len(cands[i][2]) for i in range(len(cands))]
-
-            # Build the output file.
-            for i, (start, end, seq) in enumerate(cands):
-                outList.append((chrom, start, end, seq, quals[i]))
+        # Build the output file.
+        for i, (start, end, seq) in enumerate(cands):
+            outList.append((chrom, start, end, seq, quals[i]))
 
             # outList2 = sorted(outList2,key = lambda x:(int(x[1]),int(x[2])))
-            outList = joinseq(outList)
+        outList = joinseq(outList)
 
-            LOG.info("{}: {} contiguous probes identified in {}.".format(LOG.name, len(outList), outName))
-            # Write the output file.
-            output.write('\n'.join(outList))
-            output.close()
+        LOG.info("{}: {} contiguous probes identified in {}.".format(LOG.name, len(outList), outName))
+        # Write the output file.
+        output.write('\n'.join(outList))
+        output.close()
 
         # Print info about the results to terminal.
-        probeNum = len(cands)
+        probeNum = len(outList)
         if probeNum == 0:
             LOG.info('No candidate probes discovered')
         else:
@@ -724,114 +486,16 @@ class SequenceCrawler:
             LOG.info('[Discontiguous probes]: %d candidate probes identified in %0.2f kb yielding %0.2f '
                      'candidates/kb' % (probeNum, probeWindow, probeDensity))
 
-        # Write meta information to a .txt file if desired.
-        if self.metaVal:
-            metaText = open('%s_blockParse_meta.txt' % outName, 'w')
-            if probeNum == 0:
-                metaText.write('%s\t%s\t%d\t No candidate probes discovered' \
-                               % (self.inputFile, Version, probeNum))
-                metaText.close()
-            else:
-                metaText.write('%s\t%s\t%d\t%0.2f\t%0.2f' \
-                               % (self.inputFile, Version, probeNum,
-                                  probeWindow, probeDensity))
-                metaText.close()
-
-        # If desired, create report file.
-        if self.reportVal:
-            self.N_int_failCount = len(self.N_int_fail)
-            self.N_block_failCount = len(self.N_block_fail)
-            self.prohib_failCount = len(self.prohib_fail)
-            self.Tm_fail_lowCount = len(self.Tm_fail_low)
-            self.Tm_fail_highCount = len(self.Tm_fail_high)
-            self.gc_fail_lowCount = len(self.gc_fail_low)
-            self.gc_fail_highCount = len(self.gc_fail_high)
-            windowCount = (self.N_int_failCount + self.N_block_failCount \
-                           + self.prohib_failCount + self.Tm_fail_lowCount \
-                           + self.Tm_fail_highCount + self.gc_fail_lowCount \
-                           + self.gc_fail_highCount + probeNum)
-            reportOut = open('%s_blockParse_log.txt' % outName, 'w')
-            self.reportList.insert(0, 'Results produced by %s %s' \
-                                   % (scriptName, Version))
-            if probeNum == 0:
-                self.reportList.insert(1, 'No candidate probes discovered')
-            else:
-                self.reportList.insert(1, '%d candidate probes identified in %0.2f '
-                                          'kb yielding %0.2f candidates/kb'
-                                       % (probeNum, probeWindow, probeDensity))
-            self.reportList.insert(2, 'Note: only the first failure encountered is '
-                                      'reported. The order of checks is \'N\' bases '
-                                      '> prohib. sequences > Tm > %G+C')
-            self.reportList.insert(3, '-' * 100)
-            self.reportList.insert(4, '%d of %d / %0.4f%% of sequence windows '
-                                      'examined resulted in candidate probes'
-                                   % (probeNum, windowCount, \
-                                      float(probeNum) / float(windowCount) * 100))
-            self.reportList.insert(5, '%d of %d / %0.4f%% of sequence windows '
-                                      'examined were skipped due to interspersed '
-                                      '\'N\' bases' \
-                                   % (self.N_int_failCount, windowCount,
-                                      float(self.N_int_failCount) \
-                                      / float(windowCount) * 100))
-            self.reportList.insert(6, '%d of %d / %0.4f%% of sequence windows '
-                                      'examined were skipped because they '
-                                      'exclusively contained \'N\' bases' \
-                                   % (self.N_block_failCount, windowCount,
-                                      float(self.N_block_failCount) \
-                                      / float(windowCount) * 100))
-            self.reportList.insert(7, '%d of %d / %0.4f%% of sequence windows '
-                                      'examined failed because they contained '
-                                      'prohibited sequences' \
-                                   % (self.prohib_failCount, windowCount,
-                                      float(self.prohib_failCount) \
-                                      / float(windowCount) * 100))
-            self.reportList.insert(8, '%d of %d / %0.4f%% of sequence windows '
-                                      'examined failed because the Tm was below %d' \
-                                   % (self.Tm_fail_lowCount, windowCount,
-                                      float(self.Tm_fail_lowCount) \
-                                      / float(windowCount) * 100, self.tm))
-            self.reportList.insert(9, '%d of %d / %0.4f%% of sequence windows '
-                                      'examined failed because the Tm was above %d' \
-                                   % (self.Tm_fail_highCount, windowCount,
-                                      float(self.Tm_fail_highCount) \
-                                      / float(windowCount) * 100, self.TM))
-            self.reportList.insert(10, '%d of %d / %0.4f%% of sequence windows '
-                                       'examined failed because the %%G+C was below '
-                                       '%d' \
-                                   % (self.gc_fail_lowCount, windowCount,
-                                      float(self.gc_fail_lowCount) \
-                                      / float(windowCount) * 100, self.gcPercent))
-            self.reportList.insert(11, '%d of %d / %0.4f%% of sequence windows '
-                                       'examined failed because the %%G+C was above '
-                                       '%d' \
-                                   % (self.gc_fail_highCount, windowCount,
-                                      float(self.gc_fail_highCount) \
-                                      / float(windowCount) * 100, self.GCPercent))
-            self.reportList.insert(12, '-' * 100)
-            reportOut.write('\n'.join(self.reportList))
-            reportOut.close()
-
 
 def runSequenceCrawler(inputFile, l, L, gcPercent, GCPercent, nn_table, tm, TM,
-                       X, sal, form, sp, conc1, conc2, headerVal, bedVal,
-                       OverlapModeVal, verbocity, reportVal, debugVal, metaVal,
-                       outNameVal):
+                       X, sal, form, sp, conc1, conc2,
+                       OverlapModeVal, outNameVal):
     """Creates and runs a SequenceCrawler instance."""
 
     sc = SequenceCrawler(inputFile, l, L, gcPercent, GCPercent, nn_table, tm,
-                         TM, X, sal, form, sp, conc1, conc2, headerVal, bedVal,
-                         OverlapModeVal, verbocity, reportVal, debugVal,
-                         metaVal, outNameVal)
+                         TM, X, sal, form, sp, conc1, conc2,
+                         OverlapModeVal, outNameVal)
     sc.run()
-
-
-# def run(inputfile, minlen, maxlen, mingc, maxgc, dnac1, dnac2, formamide=50,tm=42,Tm=47,overlapmode=False):
-#     exec('nn_table = mt.{}'.format("DNA_NN3"), None, globals())
-#     sc = SequenceCrawler(inputfile, minlen, maxlen, mingc, maxgc, nn_table, tm,
-#                          TM, X, sal, form, sp, conc1, conc2, headerVal, bedVal,
-#                          OverlapModeVal, verbocity, reportVal, debugVal,
-#                          metaVal, outNameVal)
-#     sc.run()
 
 
 def main():
@@ -843,11 +507,11 @@ def main():
 
     # Allow user to input parameters on command line.
     userInput = argparse.ArgumentParser(description= \
-                                            '%s version %s. Requires a FASTA file as input. Currently, only '
-                                            'single-entry FASTA files are supported.  Returns a .fastq file, which '
-                                            'can be inputted into short read alignment programs. Optionally, a '
+                                            '%s version %s. Requires a FASTA file as input, Returns a .fastq file,'
+                                            'which can be inputted into short read alignment programs. Optionally, a '
                                             '.bed file can be outputted instead if \'-b\' is flagged. Tm values '
                                             'are corrected for [Na+] and [formamide].' % ("blockparser", "0.0.0"))
+
     requiredNamed = userInput.add_argument_group('required arguments')
     requiredNamed.add_argument('-f', '--file', action='store', required=True,
                                help='The FASTA file to find probes in')
@@ -905,10 +569,6 @@ def main():
                            help='The nearest neighbor table of thermodynamic '
                                 'parameters to be used. See options in '
                                 'Bio.SeqUtils.MeltingTemp. Default is DNA_NN3')
-    userInput.add_argument('-H', '--header', action='store', type=str,
-                           help='Allows the use of a custom header in the '
-                                'format chr:start-stop. E.g. '
-                                '\'chr2:12500-13500\'')
     userInput.add_argument('-b', '--bed', action='store_true', default=False,
                            help='Output a .bed file of candidate probes '
                                 'instead of a .fastq file.')
@@ -919,29 +579,6 @@ def main():
                                 'sequence including overlaps. Off by default. '
                                 'Note, if selecting this option, the '
                                 '-S/--Spacing value will be ignored')
-    userInput.add_argument('-v', '--verbose', action='store_true',
-                           default=False,
-                           help='Turn on verbose mode to have probe mining'
-                                'progress print to Terminal. Off by default')
-    userInput.add_argument('-R', '--Report', action='store_true', default=False,
-                           help='Write a Report file detailing the results of '
-                                'each window of sequence considered by the '
-                                'script. The first set of lines give the '
-                                'occurrence of each possible failure mode for '
-                                'quick reference. Off by default. Note, '
-                                'selecting this option will slow the script '
-                                'considerably')
-    userInput.add_argument('-D', '--Debug', action='store_true', default=False,
-                           help='The same as -Report, but prints info to '
-                                'terminal instead of writing a log file. Off '
-                                'by default')
-    userInput.add_argument('-M', '--Meta', action='store_true', default=False,
-                           help='Write a text file containing meta information '
-                                'Off by default. Reports input file <tab> '
-                                'estimated runtime <tab> blockParse version '
-                                '<tab> candidates discovered <tab> span in kb '
-                                'covered by candidate probes <tab> candidate '
-                                'probes per kb')
     userInput.add_argument('-o', '--output', action='store', default=None,
                            type=str, help='Specify the stem of the output '
                                           'filename')
@@ -959,15 +596,7 @@ def main():
     sal = args.salt
     form = args.formamide
     sp = args.Spacing
-    concA = args.dnac1
-    concB = args.dnac2
-    headerVal = args.header
-    bedVal = args.bed
     OverlapModeVal = args.OverlapMode
-    verbocity = args.verbose
-    reportVal = args.Report
-    debugVal = args.Debug
-    metaVal = args.Meta
     outNameVal = args.output
 
     # Assign concentration variables based on magnitude.
@@ -989,9 +618,7 @@ def main():
     #        OverlapModeVal, verbocity, reportVal, debugVal, metaVal,
     #        outNameVal])
     runSequenceCrawler(inputFile, l, L, gcPercent, GCPercent, nn_table, tm, TM,
-                       X, sal, form, sp, conc1, conc2, headerVal, bedVal,
-                       OverlapModeVal, verbocity, reportVal, debugVal, metaVal,
-                       outNameVal)
+                       X, sal, form, sp, conc1, conc2, OverlapModeVal, outNameVal)
 
     # Print wall-clock runtime to terminal.
     print('Program took %f seconds' % (timeit.default_timer() - startTime))
