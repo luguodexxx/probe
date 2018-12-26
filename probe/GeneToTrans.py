@@ -27,7 +27,7 @@ def generateinfo(fasta, targetfile, outputprefix):
                 i = i.strip().split(' ')
                 gid = i[3].split(':')[1].split('.')[0]
                 ttype = i[5].split(':')[1]
-                tid = i[0][1:]
+                tid = i[0].split('|')[0][1:]
                 if ttype == 'protein_coding' and gid in targetpool:
                     OUT.write('\t'.join([tid, '\t'.join(targetpool[gid])]) + '\n')
                     fastadict[tid]["header"] = i

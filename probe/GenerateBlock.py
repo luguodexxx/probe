@@ -477,7 +477,7 @@ class SequenceCrawler:
         output.close()
 
         # Print info about the results to terminal.
-        probeNum = len(outList)
+        probeNum = len(cands)
         if probeNum == 0:
             LOG.info('No candidate probes discovered')
         else:

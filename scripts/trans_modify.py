@@ -15,7 +15,7 @@ def main(file):
                 line = line.strip().split(" ")
                 internal = ":".join(line[2].split(":")[2:])
                 genesymbol = line[6].split(":")[1]
-                OUT.write(' '.join(['_'.join([line[0], genesymbol, internal])] + line[1:]) + "\n")
+                OUT.write(' '.join(['|'.join([line[0], genesymbol, internal])] + line[1:]) + "\n")
             else:
                 OUT.write(line)
 

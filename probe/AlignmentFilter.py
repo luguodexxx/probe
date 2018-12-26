@@ -63,7 +63,7 @@ class SAM():
         if not self.mapped:
             self.geneid, self.genesymbol, self.location = ["nogeneid", "nogenesymbol", "0:0:0:1"]
         else:
-            self.geneid, self.genesymbol, self.location = self.geneinfo.split("_")
+            self.geneid, self.genesymbol, self.location = self.geneinfo.split("|")
 
     @property
     def proRC(self):
@@ -356,7 +356,7 @@ class BlockParser():
                     passstatus, reslist = BlockParser.process_revline_multihostgene(linelist)
                     if passstatus:
                         line_ = genesymbol_ref[genesymbol]
-                        transcriptid = BlockParser.process_revline(line_) + reslist
+                        transcriptid = list(BlockParser.process_revline(line_)) + list(reslist)
                         chrom, seq, Tm, revseq = line_[0].f_chr, line_[0].seq, line_[0].Tm, \
                                                  line_[0].proRC
                         left, right = line_[0].PLP
@@ -380,11 +380,13 @@ def generateprobe(left, right, probelength, configinfo):
     firbc, secbc, thirdbc = configinfo
     alignedlength = len(left + right)
     retain = probelength - (alignedlength + len(firbc) + len(secbc) + len(thirdbc))
-    assert retain >= 0, "probelength was too short. all: {}, aligned: {}, fir,sec,third {} {} {}".format(probelength,
-                                                                                                         alignedlength,
-                                                                                                         len(firbc),
-                                                                                                         len(secbc),
-                                                                                                         len(thirdbc))
+    if retain < 0:
+        LOG.warn("probelength was too short. all: {}, aligned: {}, fir,sec,third {} {} {}".format(probelength,
+                                                                                                  alignedlength,
+                                                                                                  len(firbc),
+                                                                                                  len(secbc),
+                                                                                                  len(thirdbc)))
+        return " "
     leftrandom = int(retain / 2)
     rightrandom = retain - leftrandom
     leftseq = ''.join([random.choice(['A', 'T', 'C', 'G']) for i in range(leftrandom)])
