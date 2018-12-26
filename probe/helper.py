@@ -9,7 +9,7 @@ from logging.handlers import RotatingFileHandler
 def set_logging(log_name):
     u"""
     set logging handler
-    Created by Zhang yiming at 2018.11.13
+    modified from Zhang yiming at 2018.11.13
     :return:
     """
     sh = logging.StreamHandler()
@@ -38,6 +38,5 @@ def set_logging(log_name):
     log.addHandler(sh)
     log.addHandler(fh)
     return log
-
 
 # logger = set_logging("pySplice")

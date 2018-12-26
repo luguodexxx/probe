@@ -69,7 +69,7 @@ class Junction:
         :param ed: end site
         :param strand: plus or minus
         :param offset: for checking whether right site
-        :return:
+        :return: upstream, downstream and combined sequence
         """
         assert isinstance(faidx, Faidx), "Faidx file must be a <class: Faidx>, not {}".format(faidx.__class__)
         seq1 = faidx.fetch(chr, int(st) - 40 + offset, int(st) - 1 + offset, strand)

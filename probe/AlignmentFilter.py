@@ -29,6 +29,7 @@
 import sys
 import os
 from collections import defaultdict
+from itertools import chain
 import random
 import subprocess
 import optparse
@@ -42,7 +43,7 @@ SJMOTIF = set(["GT@AG", "CT@AC", "GC@AG", "CT@GC", "AT@AC", "GT@AT"])
 LOG = set_logging("AlignmentFilter")
 
 
-class IndexError(Exception):
+class Bowtie2Error(Exception):
     pass
 
 
@@ -165,7 +166,7 @@ class JuncParser():
         :return:
         """
 
-        DIC = defaultdict(lambda: defaultdict(list))
+        samdict = defaultdict(lambda: defaultdict(list))
         probeseqinfo = self.TARGET[self._prefix][:3]
 
         result = []
@@ -180,9 +181,9 @@ class JuncParser():
                                "yes" if self.motif in SJMOTIF else "no", left, right, revseq, seq, plpseq, Tm, '1',
                                line.geneinfo))
                 continue
-            DIC[line.f_chr][line.location].append(line)
+            samdict[line.f_chr][line.location].append(line)
 
-        for fakechrom, internalinfo in DIC.items():
+        for fakechrom, internalinfo in samdict.items():
             if locationfilter(fakechrom):
                 for location, samline in internalinfo.items():
                     if samline.internal_start <= self.st and samline.internal_end >= self.ed:
@@ -249,6 +250,37 @@ class BlockParser():
         return targetres
 
     @staticmethod
+    def process_revline(samlist):
+        """
+        if a candidate only aligned to the host gene, we only choose the reverse alignment
+        :param samlist:
+        :return:
+        """
+        transcriptid = set()
+        for rline in samlist:
+            if rline.checkFlag():
+                transcriptid.add('|'.join([rline.geneid, rline.genesymbol]))
+            else:
+                continue
+        return transcriptid
+
+    @staticmethod
+    def process_revline_multihostgene(samlist):
+        """
+        if a candidate aligned to multiple genes and including the host gene,
+        not reverse alignment on other genes also accepted, accepted[True] not[False]
+        :param samlist:
+        :return:
+        """
+        results = set()
+        for rline in samlist:
+            if rline.checkFlag():
+                return False, results
+            results.add('|'.join([rline.geneid, rline.genesymbol]))
+
+        return True, results
+
+    @staticmethod
     def processAlign(index, fa, sal, formamide):
         """
         Process the bowtie command on the air
@@ -272,6 +304,7 @@ class BlockParser():
         ]
 
         LOG.info(msg='{}\tBowtie2 command: {}'.format(LOG.name, ' '.join(bowtie2comm)))
+
         proc = subprocess.Popen(
             bowtie2comm,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE
@@ -281,7 +314,7 @@ class BlockParser():
         if not result:
             err = err.decode()
             if "ERR" in err:
-                raise IndexError("Could not locate a Bowtie index corresponding to basename \"{}\"".format(index))
+                raise Bowtie2Error("{}".format(err))
 
         parsing = [
             SAM(line, sal, formamide)
@@ -297,40 +330,43 @@ class BlockParser():
 
         result = []
         probeseqinfo = self.TARGET[self._prefix][:3]
-        DIC = defaultdict(lambda: defaultdict(list))
-        for line in self.samresult:
-            DIC[line.f_chr][line.geneid].append(line)
+        genesymbol = self.TARGET[self._prefix][3]
 
-        for fakeChr, GeneId in DIC.items():
-            alignment_target = GeneId.keys()
-            if any(sub_gene != self._prefix for sub_gene in alignment_target):
-                A = []  # in TARGET
-                B = []  # out of TARGET
-                for gene in alignment_target:
-                    if gene == self._prefix:
-                        for line in GeneId[gene]:
-                            if int(line.flag) & 16 == 16:
-                                A.append(line)
-                    else:
-                        for line in GeneId[gene]:
-                            B.append(line)
-                if any(i.checkFlag() for i in B) and len(A) != 0:
-                    isoform = [saminfo.geneid for saminfo in A]
-                    chrom, start, stop, seq, Tm, revseq = A[0].f_chr, A[0].abs_start, A[0].abs_end, A[0].seq, A[0].Tm, \
-                                                          A[0].proRC
-                    left, right = A[0].PLP
+        samdict = defaultdict(lambda: defaultdict(list))
+        for line in self.samresult:
+            samdict[line.f_chr][line.genesymbol].append(line)
+
+        for fakeChr, genesymbol_ref in samdict.items():
+            referkeys = list(genesymbol_ref.keys())
+            if len(referkeys) == 1:
+                if genesymbol == referkeys[0]:
+                    line_ = list(chain(*genesymbol_ref.values()))
+                    transcriptid = BlockParser.process_revline(line_)
+                    chrom, seq, Tm, revseq = line_[0].f_chr, line_[0].seq, line_[0].Tm, \
+                                             line_[0].proRC
+                    left, right = line_[0].PLP
                     plpseq = generateprobe(left, right, self._probelength, probeseqinfo)
-                    result.append((chrom, left, right, revseq, seq, plpseq, Tm, str(len(isoform)), ','.join(isoform)))
+                    result.append(
+                        (chrom, left, right, revseq, seq, plpseq, Tm, str(len(transcriptid)), ','.join(transcriptid)))
+                else:
+                    continue
             else:
-                res = []
-                for gene, saminfo in GeneId.items():
-                    for i in saminfo:
-                        if i.checkFlag():
-                            res.append(i.geneid)
-                            chrom, start, stop, seq, Tm, revseq = i.f_chr, i.abs_start, i.abs_end, i.seq, i.Tm, i.proRC
-                            left, right = i.PLP
-                plpseq = generateprobe(left, right, self._probelength, probeseqinfo)
-                result.append((chrom, left, right, revseq, seq, plpseq, Tm, str(len(res)), ','.join(res)))
+                if genesymbol in set(referkeys):
+                    linelist = list(chain(*[v for k, v in genesymbol_ref.items() if k != genesymbol]))
+                    passstatus, reslist = BlockParser.process_revline_multihostgene(linelist)
+                    if passstatus:
+                        line_ = genesymbol_ref[genesymbol]
+                        transcriptid = BlockParser.process_revline(line_) + reslist
+                        chrom, seq, Tm, revseq = line_[0].f_chr, line_[0].seq, line_[0].Tm, \
+                                                 line_[0].proRC
+                        left, right = line_[0].PLP
+                        plpseq = generateprobe(left, right, self._probelength, probeseqinfo)
+
+                        result.append(
+                            (chrom, left, right, revseq, seq, plpseq, Tm, str(len(transcriptid)),
+                             ','.join(transcriptid)))
+                else:
+                    continue
         return result
 
 
@@ -361,7 +397,7 @@ def _parse_args():
     """
     Parse the command line for options
     """
-    usage = """callpeaks.py -x [bowtie2index] -f [FqFile] -s <390> -F <20> -T [TargetPoolFile] -o <output>
+    usage = """AlignmentFilter.py -x [bowtie2index] -f [FqFile] -s <390> -F <20> -T [TargetPoolFile] -o <output>
             """
     fmt = optparse.IndentedHelpFormatter(max_help_position=50, width=100)
     parser = optparse.OptionParser(usage=usage, formatter=fmt)
@@ -421,7 +457,7 @@ def _parse_args():
 
 def main():
     options = _parse_args()
-    samresult = JuncParser(
+    samresult = BlockParser(
         options.file,
         options.index,
         options.targets,

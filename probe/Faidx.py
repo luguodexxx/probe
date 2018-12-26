@@ -3,10 +3,10 @@
 # @Time    : 2018/12/3 下午3:18
 # @Author  : Zhou Ran
 # @File    : Faidx.py
+
 import sys
 import os
 from collections import OrderedDict, namedtuple
-
 
 
 class IndexRecord(
@@ -33,10 +33,13 @@ class Fasta(object):
 
     def __init__(self, chr, start, end, seq, strand, name=None):
         """
+
         :param chr:
         :param start:
         :param end:
+        :param seq:
         :param strand:
+        :param name:
         """
         assert isinstance(start, int)
         assert isinstance(end, int)
@@ -55,13 +58,17 @@ class Fasta(object):
     @property
     def seq(self):
         """
-        这里有问题，建议直接返回正常的序列
+        an API to access original sequence
         :return:
         """
         return self._seq
 
     @property
     def realseq(self):
+        """
+        an API to access the 5'->3' sequence
+        :return:
+        """
         if self._strand == "+":
             return self.seq
         else:
@@ -70,7 +77,6 @@ class Fasta(object):
     @property
     def reverse(self):
         """
-        这里也有问题，最好是直接返回Fasta这个类
         :return:
         """
         return self.__class__(self._chr, self._start, self._end, self.seq[::-1], self._strand)

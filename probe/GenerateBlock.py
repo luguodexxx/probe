@@ -721,7 +721,7 @@ class SequenceCrawler:
         else:
             probeWindow = float((int(cands[-1][1]) - int(cands[0][0]))) / 1000
             probeDensity = float((float(probeNum) / probeWindow))
-            LOG.info('[Discontiguous probes]:%d candidate probes identified in %0.2f kb yielding %0.2f '
+            LOG.info('[Discontiguous probes]: %d candidate probes identified in %0.2f kb yielding %0.2f '
                      'candidates/kb' % (probeNum, probeWindow, probeDensity))
 
         # Write meta information to a .txt file if desired.
