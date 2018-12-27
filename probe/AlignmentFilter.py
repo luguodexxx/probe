@@ -175,7 +175,7 @@ class JuncParser():
                 chrom, start, stop, seq, Tm, revseq = line.f_chr, line.abs_start, line.abs_end, line.seq, line.Tm, \
                                                       line.proRC
                 left, right = line.PLP
-                plpseq = generateprobe(left, right, self._probelength, probeseqinfo)
+                plpseq = generateprobe(left, right, self._probelength, probeseqinfo, self._prefix)
 
                 result.append((chrom, self.motif,
                                "yes" if self.motif in SJMOTIF else "no", left, right, revseq, seq, plpseq, Tm, '1',
@@ -193,7 +193,7 @@ class JuncParser():
                             chrom, start, stop, seq, Tm, revseq = line.f_chr, line.abs_start, line.abs_end, line.seq, line.Tm, \
                                                                   line.proRC
                             left, right = line.PLP
-                            plpseq = generateprobe(left, right, self._probelength, probeseqinfo)
+                            plpseq = generateprobe(left, right, self._probelength, probeseqinfo, self._prefix)
 
                             result.append(
                                 (chrom, self.motif, "yes" if self.motif in SJMOTIF else "no", left, right, revseq, seq,
@@ -210,7 +210,7 @@ class BlockParser():
 
     def __init__(self, fa, index, tagetfile, outfile, sal, formamide, probelength, verbose=False):
         self.fa = fa
-        self._prefix = os.path.splitext(self.fa)[0]
+        self._prefix = os.path.splitext(os.path.split(self.fa)[1])[0]
         self.index = index
         self._targetfile = tagetfile
         # self.TARGET = set([i.strip().split('\t')[0] for i in open(TARGETfile).readlines()])
@@ -345,7 +345,7 @@ class BlockParser():
                     chrom, seq, Tm, revseq = line_[0].f_chr, line_[0].seq, line_[0].Tm, \
                                              line_[0].proRC
                     left, right = line_[0].PLP
-                    plpseq = generateprobe(left, right, self._probelength, probeseqinfo)
+                    plpseq = generateprobe(left, right, self._probelength, probeseqinfo, self._prefix)
                     result.append(
                         (chrom, left, right, revseq, seq, plpseq, Tm, str(len(transcriptid)), ','.join(transcriptid)))
                 else:
@@ -360,7 +360,7 @@ class BlockParser():
                         chrom, seq, Tm, revseq = line_[0].f_chr, line_[0].seq, line_[0].Tm, \
                                                  line_[0].proRC
                         left, right = line_[0].PLP
-                        plpseq = generateprobe(left, right, self._probelength, probeseqinfo)
+                        plpseq = generateprobe(left, right, self._probelength, probeseqinfo, self._prefix)
 
                         result.append(
                             (chrom, left, right, revseq, seq, plpseq, Tm, str(len(transcriptid)),
@@ -370,7 +370,7 @@ class BlockParser():
         return result
 
 
-def generateprobe(left, right, probelength, configinfo):
+def generateprobe(left, right, probelength, configinfo, hostname):
     """
 
     :param samline:
@@ -381,14 +381,17 @@ def generateprobe(left, right, probelength, configinfo):
     alignedlength = len(left + right)
     retain = probelength - (alignedlength + len(firbc) + len(secbc) + len(thirdbc))
     if retain < 0:
-        LOG.warn("probelength was too short. all: {}, aligned: {}, fir,sec,third {} {} {}".format(probelength,
-                                                                                                  alignedlength,
-                                                                                                  len(firbc),
-                                                                                                  len(secbc),
-                                                                                                  len(thirdbc)))
+        LOG.warn(
+            "probelength was too short. all: {}, aligned: {}, fir,sec,third {} {} {}. HostGene: {}".format(probelength,
+                                                                                                           alignedlength,
+                                                                                                           len(firbc),
+                                                                                                           len(secbc),
+                                                                                                           len(thirdbc),
+                                                                                                           hostname))
         return " "
     leftrandom = int(retain / 2)
     rightrandom = retain - leftrandom
+    #这里要添加一个随机序列生成的工具，还要考虑GC含量
     leftseq = ''.join([random.choice(['A', 'T', 'C', 'G']) for i in range(leftrandom)])
     rightseq = ''.join([random.choice(['A', 'T', 'C', 'G']) for i in range(rightrandom)])
 

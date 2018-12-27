@@ -1,5 +1,16 @@
+import os
 import sys
 from collections import defaultdict
+
+
+def checkdir(dirname):
+    """
+
+    :param dirname:
+    :return:
+    """
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
 
 
 def generateinfo(fasta, targetfile, outputprefix):
@@ -31,6 +42,7 @@ def generateinfo(fasta, targetfile, outputprefix):
                 if ttype == 'protein_coding' and gid in targetpool:
                     OUT.write('\t'.join([tid, '\t'.join(targetpool[gid])]) + '\n')
                     fastadict[tid]["header"] = i
+                    fastadict[tid]["gid"] = gid
                     status = True
                 else:
                     status = False
@@ -42,8 +54,10 @@ def generateinfo(fasta, targetfile, outputprefix):
                     continue
         for k, v in fastadict.items():
             faname = ".".join([k, "fasta"])
-            fastalist.append(faname)
-            with open(faname, 'w') as FA:
+            checkdir(v["gid"])
+            outprefix = os.path.join(v["gid"], faname)
+            fastalist.append(outprefix)
+            with open(outprefix, 'w') as FA:
                 FA.write(''.join(v["header"]) + '\n')
                 FA.write(''.join(v["seq"]))
     return fastalist
