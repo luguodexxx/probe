@@ -370,7 +370,7 @@ class BlockParser():
         return result
 
 
-def generateprobe(left, right, probelength, configinfo, hostname):
+def generateprobe(left, right, probelength, configinfo, hostname, gccontent=0.5):
     """
 
     :param samline:
@@ -389,11 +389,25 @@ def generateprobe(left, right, probelength, configinfo, hostname):
                                                                                                            len(thirdbc),
                                                                                                            hostname))
         return " "
+    DNA = ["A", "T",
+           "C", "G"]
+
     leftrandom = int(retain / 2)
     rightrandom = retain - leftrandom
-    #这里要添加一个随机序列生成的工具，还要考虑GC含量
-    leftseq = ''.join([random.choice(['A', 'T', 'C', 'G']) for i in range(leftrandom)])
-    rightseq = ''.join([random.choice(['A', 'T', 'C', 'G']) for i in range(rightrandom)])
+    leftgc = [0 for i in range(int(leftrandom * gccontent))] + \
+             [2 for i in range(int(leftrandom - int(leftrandom * gccontent)))]
+
+    rightgc = [0 for i in range(int(rightrandom * gccontent))] + \
+              [2 for i in range(int(rightrandom - int(rightrandom * gccontent)))]
+
+    random.shuffle(leftgc)
+    random.shuffle(rightgc)
+
+    leftseq = ''.join([DNA[random.choice([0, 1]) + i] for i in leftgc])
+    rightseq = ''.join([DNA[random.choice([0, 1]) + i] for i in rightgc])
+
+    # leftseq = ''.join([random.choice(['A', 'T', 'C', 'G']) for i in range(leftrandom)])
+    # rightseq = ''.join([random.choice(['A', 'T', 'C', 'G']) for i in range(rightrandom)])
 
     return "".join([right, leftseq, firbc, secbc, thirdbc, rightseq, left])
 

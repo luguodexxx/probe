@@ -31,7 +31,7 @@ Generate the probe based on the junction information.
 
 TODO:
 1. 生成index的工具
+2. 添加二级结构的检测
 
-~~2. circRNA~~
 ### Reference
 We generate the probe followed the same filter conditions with blockParse.py in [OligMiner](https://github.com/brianbeliveau/OligoMiner)
