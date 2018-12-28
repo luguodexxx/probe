@@ -7,7 +7,7 @@ import argparse
 import math
 import re
 import timeit
-
+from math import log
 from Bio import SeqIO
 from Bio.Alphabet import IUPAC
 from Bio.Seq import Seq
@@ -20,8 +20,7 @@ LOG = set_logging("GenerateBlock")
 
 class SequenceCrawler:
     def __init__(self, inputFile, l, L, gcPercent, GCPercent, nn_table, tm, TM,
-                 X, sal, form, sp, conc1, conc2,
-                 OverlapModeVal, outNameVal):
+                 X, sal, form, sp, conc1, conc2, OverlapModeVal, outNameVal, entropy):
         """Initializes a SequenceCrawler, which is used to efficiently scan a
         large sequence for satisfactory probe sequences."""
 
@@ -61,6 +60,7 @@ class SequenceCrawler:
         self.backS = None
         self.queueInd = None
         self.noGC = False
+        self.entropy = entropy
 
         # Declare complementary relationships.
         self.comps = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C'}
@@ -330,6 +330,22 @@ class SequenceCrawler:
         bed_fcorrected = ('%0.2f' % mt.chem_correction(bedTmVal, fmd=self.form))
         return bed_fcorrected
 
+    @staticmethod
+    def entropy(seq):
+        """
+        Calculate Shannon entropy of sequence.
+        :param seq:
+        :return:
+        """
+        cnt = [seq.count(i) for i in 'ACGT']
+        d = sum(cnt)
+        ent = []
+        for i in [float(i) / d for i in cnt]:
+            if i == 0:
+                i = 1
+            ent.append(i * log(i, 2))
+        return -1 * sum(ent)
+
     def run(self):
         """Runs the crawler through the given block sequence to identify probes
         within the FASTA file satisfying the given constraints."""
@@ -466,6 +482,7 @@ class SequenceCrawler:
 
         # Build the output file.
         for i, (start, end, seq) in enumerate(cands):
+            if SequenceCrawler.entropy(seq) <= self.entropy: continue
             outList.append((chrom, start, end, seq, quals[i]))
 
             # outList2 = sorted(outList2,key = lambda x:(int(x[1]),int(x[2])))
@@ -488,13 +505,12 @@ class SequenceCrawler:
 
 
 def runSequenceCrawler(inputFile, l, L, gcPercent, GCPercent, nn_table, tm, TM,
-                       X, sal, form, sp, conc1, conc2,
-                       OverlapModeVal, outNameVal):
+                       X, sal, form, sp, conc1, conc2, OverlapModeVal, outNameVal, entropy):
     """Creates and runs a SequenceCrawler instance."""
 
     sc = SequenceCrawler(inputFile, l, L, gcPercent, GCPercent, nn_table, tm,
                          TM, X, sal, form, sp, conc1, conc2,
-                         OverlapModeVal, outNameVal)
+                         OverlapModeVal, outNameVal, entropy)
     sc.run()
 
 
@@ -582,6 +598,8 @@ def main():
     userInput.add_argument('-o', '--output', action='store', default=None,
                            type=str, help='Specify the stem of the output '
                                           'filename')
+    userInput.add_argument('-e', '--entropy', action='store', type=float, default=1.0,
+                           help='Shannon entropy, default:1')
 
     # Import user-specified command line values.
     args = userInput.parse_args()
@@ -598,6 +616,7 @@ def main():
     sp = args.Spacing
     OverlapModeVal = args.OverlapMode
     outNameVal = args.output
+    entropy = args.entropy
 
     # Assign concentration variables based on magnitude.
     if args.dnac1 >= args.dnac2:
@@ -618,7 +637,7 @@ def main():
     #        OverlapModeVal, verbocity, reportVal, debugVal, metaVal,
     #        outNameVal])
     runSequenceCrawler(inputFile, l, L, gcPercent, GCPercent, nn_table, tm, TM,
-                       X, sal, form, sp, conc1, conc2, OverlapModeVal, outNameVal)
+                       X, sal, form, sp, conc1, conc2, OverlapModeVal, outNameVal, entropy)
 
     # Print wall-clock runtime to terminal.
     print('Program took %f seconds' % (timeit.default_timer() - startTime))

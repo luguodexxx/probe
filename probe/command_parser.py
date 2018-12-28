@@ -38,6 +38,7 @@ def transcript(args):
     verbocity = args.verbose
     index = args.index
     probelength = args.probelength
+    entropy = args.entropy
 
     if args.dnac1 >= args.dnac2:
         conc1 = args.dnac1
@@ -52,13 +53,13 @@ def transcript(args):
     for sub in falist:
         subprefix = os.path.splitext(sub)[0]
         runSequenceCrawler(sub, l, L, gcPercent, GCPercent, nn_table, tm, TM, X, sal, form, sp, conc1, conc2,
-                           OverlapModeVal, subprefix)
+                           OverlapModeVal, subprefix, entropy)
         BlockParser('.'.join([subprefix, 'fastq']), index, '.'.join([outputprefix, 'layerinfo.txt']),
                     '.'.join([subprefix, 'result']), sal, form, probelength, verbose=verbocity)
 
 
 def junction(args):
-    fastaC = args.fastaC
+    # fastaC = args.fastaC
     fastaG = args.fastaG
     targetfile = args.target
     outputprefix = args.outprefix
@@ -76,6 +77,7 @@ def junction(args):
     verbocity = args.verbose
     index = args.index
     probelength = args.probelength
+    entropy = args.entropy
 
     if args.dnac1 >= args.dnac2:
         conc1 = args.dnac1
@@ -90,7 +92,7 @@ def junction(args):
     for sub in falist:
         subprefix = os.path.splitext(sub)[0]
         runSequenceCrawler(sub, l, L, gcPercent, GCPercent, nn_table, tm, TM, X, sal, form, sp, conc1, conc2,
-                           OverlapModeVal, subprefix)
+                           OverlapModeVal, subprefix, entropy)
 
         JuncParser('.'.join([subprefix, 'fastq']), index, os.path.join(outputprefix, 'config.txt'),
                    '.'.join([subprefix, 'result']), sal, form, probelength, verbose=verbocity)
@@ -108,13 +110,13 @@ __________              ___.          ________                .__
                              \/     \/        \/     \/     \/  /_____/      \/                              """))
 
     userInput.add_argument('-ta', '--target', action='store',
-                           type=str,
+                           type=str, required=True,
                            help='A config file')
     userInput.add_argument('-op', '--outprefix', action='store',
-                           type=str,
+                           type=str, required=True,
                            help='output folder prefix')
     userInput.add_argument('-index', '--index', action='store',
-                           type=str,
+                           type=str, required=True,
                            help='bowtie2 index files, generate by modified cDNA fasta.')
     userInput.add_argument('-l', '--minLength', action='store', default=36,
                            type=int,
@@ -174,9 +176,6 @@ __________              ___.          ________                .__
                            help='Allows the use of a custom header in the '
                                 'format chr:start-stop. E.g. '
                                 '\'chr2:12500-13500\'')
-    userInput.add_argument('-b', '--bed', action='store_true', default=False,
-                           help='Output a .bed file of candidate probes '
-                                'instead of a .fastq file.')
     userInput.add_argument('-O', '--OverlapMode', action='store_true',
                            default=False,
                            help='Turn on Overlap Mode, which returns all '
@@ -186,10 +185,11 @@ __________              ___.          ________                .__
                                 '-S/--Spacing value will be ignored')
     userInput.add_argument('-v', '--verbose', action='store_true',
                            default=False,
-                           help='Turn on verbose mode to have probe mining'
-                                'progress print to Terminal. Off by default')
+                           help='Verbose mode. Output the alignment results.')
     userInput.add_argument('-pl', '--probelength', action='store', type=int, default=70,
                            help='PLP length,default:70')
+    userInput.add_argument('-ep', '--entropy', action='store', type=int, default=1,
+                           help='Shannon entropy, default:1')
 
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                      description=textwrap.dedent("""
