@@ -28,6 +28,7 @@
 
 import sys
 import os
+import glob
 from collections import defaultdict
 from itertools import chain
 import random
@@ -45,6 +46,48 @@ LOG = set_logging("AlignmentFilter")
 
 class Bowtie2Error(Exception):
     pass
+
+
+def mfold(falist, ct, na_conc, type="DNA"):
+    """
+    calling the mfold and check the second structure
+    :param fa:
+    :param type:
+    :param NA_CONC:
+    :param Tm:
+    :return:
+    """
+    faprefix, left, right = falist[0].split(';')
+
+    with open(faprefix + '.fa', 'w') as Fa:
+        Fa.write(">{}\n{}".format(falist[0], falist[5]))
+
+    mfoldcomm = "mfold SEQ=\'{}\' NA={} NA_CONC={} T={}".format(faprefix + '.fa', type, na_conc, int(ct))
+
+    proc = subprocess.Popen(
+        mfoldcomm,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
+    )
+
+    result, err = proc.communicate()
+
+    try:
+        with open(faprefix + ".fa.ct") as IN:
+            res = []
+            for line in IN.readlines():
+                res.extend([line.strip().split()])
+            leftcheck = set(map(lambda x: x[4], res[1:int(right)]))
+            rightcheck = set(map(lambda x: x[4], res[-int(left):]))
+    except:
+        return False
+
+    for f in glob.glob("{}*".format(faprefix)):
+        os.remove(f)
+
+    if len(leftcheck) == 1 and len(rightcheck) == 1:
+        return True
+    else:
+        return False
 
 
 class SAM():
@@ -131,8 +174,7 @@ class JuncParser():
     JunctParser
     """
 
-    def __init__(self, fa, index, targetfile, outfile, sal,
-                 formamide, probelength, verbose=False):
+    def __init__(self, fa, index, targetfile, outfile, sal, formamide, probelength, hytemp, mfold_=False, verbose=False):
         self.fa = fa
         self._prefix = os.path.splitext(os.path.split(self.fa)[1])[0]
         self.st, self.ed = self._prefix.split(":")[1][:-1].split('-')
@@ -144,7 +186,9 @@ class JuncParser():
         self.formamide = formamide
         self._probelength = probelength
         self.outfile = outfile
-
+        self.hytemp = hytemp
+        self.correcttemp = 0.65 * self.formamide + self.hytemp
+        self.mfold = mfold_
         self.samresult = BlockParser.processAlign(self.index, self.fa, self.sal, self.formamide)
         self.filter = self.__filter()
 
@@ -155,7 +199,11 @@ class JuncParser():
                 ['FakeChrom', 'motif', 'canonical', 'left', 'right', 'afterRC', 'beforeRC',
                  "PLPsequence", 'Tm', 'isoform_nums', 'isoforms']) + '\n')
             for read in self.filter:
-                OUT.write('\t'.join(read) + '\n')
+                if self.mfold:
+                    if mfold(read, self.correcttemp, self.sal / 1000):
+                        OUT.write('\t'.join(read) + '\n')
+                else:
+                    OUT.write('\t'.join(read) + '\n')
 
     @property
     def motif(self):
@@ -208,12 +256,12 @@ class BlockParser():
     BlockParser, execute the bowtie2 command and filter every mapped information on the air
     """
 
-    def __init__(self, fa, index, tagetfile, outfile, sal, formamide, probelength, verbose=False):
+    def __init__(self, fa, index, tagetfile, outfile, sal, formamide, probelength, hytemp, mfold_=False, verbose=False):
         self.fa = fa
         self._prefix = os.path.splitext(os.path.split(self.fa)[1])[0]
         self.index = index
         self._targetfile = tagetfile
-        # self.TARGET = set([i.strip().split('\t')[0] for i in open(TARGETfile).readlines()])
+
         self.TARGET = BlockParser.processtarget(self._targetfile)
         self.outfile = outfile
         self.sal = sal
@@ -223,6 +271,9 @@ class BlockParser():
 
         self.samresult = BlockParser.processAlign(self.index, self.fa, self.sal, self.formamide)
 
+        self.hytemp = hytemp
+        self.correcttemp = 0.65 * self.formamide + self.hytemp
+        self.mfold = mfold_
         self.filter = self.__filter()
 
         if self.verbose:
@@ -238,7 +289,11 @@ class BlockParser():
                 ['FakeChrom', 'left', 'right', 'afterRC', 'beforeRC',
                  "PLPsequence", 'Tm', 'isoform_nums', 'isoforms']) + '\n')
             for read in self.filter:
-                OUT.write('\t'.join(read) + '\n')
+                if self.mfold:
+                    if mfold(read, self.correcttemp, self.sal / 1000):
+                        OUT.write('\t'.join(read) + '\n')
+                else:
+                    OUT.write('\t'.join(read) + '\n')
 
     @staticmethod
     def processtarget(targetfile):
@@ -464,6 +519,10 @@ def _parse_args():
         '-p', '--probelength', action='store', default=70, type=int, dest='probelength',
         help='probelength.'
     )
+    group.add_option(
+        '-h', '--hp', action='store', default=47, type=float, dest='hytemp',
+        help="hybridize temp"
+    )
 
     parser.add_option_group(group)
     options, args = parser.parse_args()
@@ -484,6 +543,7 @@ def main():
         options.salt,
         options.formamide,
         options.probelength,
+        options.hytemp,
         options.verbose
     )
     # samresult.__filter()
