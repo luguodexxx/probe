@@ -84,7 +84,7 @@ def junction(args):
     entropy = args.entropy
     hytemp = args.hytemp
     thread = args.thread
-
+    mfold = args.mfold
     if args.dnac1 >= args.dnac2:
         conc1 = args.dnac1
         conc2 = args.dnac2
@@ -232,8 +232,8 @@ __________              ___.          ________                .__
                                 type=str,
                                 help='whole genome fasta file')
     junction_parse.add_argument('-faC', '--fastaC', action='store',
-                                  type=str,
-                                  help='cDNA fasta file, must be modified')
+                                type=str,
+                                help='cDNA fasta file, must be modified')
 
     junction_parse.set_defaults(func=junction)
 

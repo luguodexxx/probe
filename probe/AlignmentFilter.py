@@ -225,6 +225,7 @@ class JuncParser():
             if self.mfold:
                 pool.close()
                 pool.join()
+                os.system('rm *fa* -rf')
                 for res in results:
                     res = res.get()
                     if res:
