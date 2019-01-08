@@ -206,7 +206,6 @@ __________              ___.          ________                .__
                              help='mfold')
     probedesign.add_argument('-td', '--thread', action='store', type=int, default=4,
                              help='Multipleprocess to speed the mfold')
-
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                      description=textwrap.dedent("""
 __________              ___.          ________                .__               
@@ -232,6 +231,10 @@ __________              ___.          ________                .__
     junction_parse.add_argument('-faG', '--fastaG', action='store', required=True,
                                 type=str,
                                 help='whole genome fasta file')
+    junction_parse.add_argument('-faC', '--fastaC', action='store',
+                                  type=str,
+                                  help='cDNA fasta file, must be modified')
+
     junction_parse.set_defaults(func=junction)
 
     circ_parse = subparsers.add_parser('circ', parents=[probedesign], help='For circRNA junction')

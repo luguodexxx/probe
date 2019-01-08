@@ -6,6 +6,7 @@ from probe.version import __version__
 
 setup(name='probedesign',
       version=__version__,
+      python_requires='>3.6',
       description='probe design',
       author='Ran zhou',
       author_email='ranzhou1005@gmail.com',
