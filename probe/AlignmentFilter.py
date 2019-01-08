@@ -38,8 +38,8 @@ from Bio.SeqUtils import MeltingTemp as mt
 from Bio.SeqUtils import GC
 from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC
+import multiprocessing
 from .helper import set_logging
-from multiprocessing import Pool
 
 SJMOTIF = set(["GT@AG", "CT@AC", "GC@AG", "CT@GC", "AT@AC", "GT@AT"])
 LOG = set_logging("AlignmentFilter")
@@ -49,7 +49,8 @@ class Bowtie2Error(Exception):
     pass
 
 
-def mfold(falist, ct, na_conc, type="DNA"):
+# def mfold(falist, ct, na_conc, type="DNA"):
+def mfold(falist, ct, na_conc):
     """
     calling the mfold and check the second structure
     :param fa:
@@ -58,12 +59,13 @@ def mfold(falist, ct, na_conc, type="DNA"):
     :param Tm:
     :return:
     """
+    # falist, ct, na_conc = args
     faprefix, left, right = falist[0].split(';')
 
     with open(faprefix + '.fa', 'w') as Fa:
         Fa.write(">{}\n{}".format(falist[0], falist[5]))
 
-    mfoldcomm = "mfold_mod SEQ=\'{}\' NA={} NA_CONC={} T={}".format(faprefix + '.fa', type, na_conc, int(ct))
+    mfoldcomm = "mfold_mod SEQ=\'{}\' NA={} NA_CONC={} T={}".format(faprefix + '.fa', "DNA", na_conc, int(ct))
 
     proc = subprocess.Popen(
         mfoldcomm,
@@ -82,22 +84,23 @@ def mfold(falist, ct, na_conc, type="DNA"):
     except:
         return False
 
-    for f in glob.glob("{}*".format(faprefix)):
-        os.remove(f)
+    for f in glob.glob("{}.fa*".format(faprefix)):
+        # print(f)
+        os.unlink(f)
 
     if len(leftcheck) == 1 and len(rightcheck) == 1:
-        return True
+        return falist
     else:
         return False
 
 
-# def wrapperprocess(args):
-#     """
-#
-#     :param args:
-#     :return:
-#     """
-#     return(mfold(args))
+def wrapperprocess(args):
+    """
+
+    :param args:
+    :return:
+    """
+    return mfold(*args)
 
 
 class SAM():
@@ -183,9 +186,8 @@ class JuncParser():
     """
     JunctParser
     """
-    # pool = Pool(processes=10)
 
-    def __init__(self, fa, index, targetfile, outfile, sal, formamide, probelength, hytemp, mfold_=False,
+    def __init__(self, fa, index, targetfile, outfile, sal, formamide, probelength, hytemp, thread, mfold_=False,
                  verbose=False):
         self.fa = fa
         self._prefix = os.path.splitext(os.path.split(self.fa)[1])[0]
@@ -204,6 +206,9 @@ class JuncParser():
         self.samresult = BlockParser.processAlign(self.index, self.fa, self.sal, self.formamide)
         self.filter = self.__filter()
 
+        pool = multiprocessing.Pool(processes=thread)
+        results = []
+
         LOG.info(msg="{}\tWriting the results to {}".format(LOG.name, self.outfile))
 
         with open(self.outfile, 'w') as OUT:
@@ -212,10 +217,18 @@ class JuncParser():
                  "PLPsequence", 'Tm', 'isoform_nums', 'isoforms']) + '\n')
             for read in self.filter:
                 if self.mfold:
-                    if mfold(read, self.correcttemp, self.sal / 1000):
-                        OUT.write('\t'.join(read) + '\n')
+                    args = (read, self.correcttemp, self.sal / 1000)
+                    results.append(pool.apply_async(wrapperprocess, args=(args,)))
                 else:
                     OUT.write('\t'.join(read) + '\n')
+
+            if self.mfold:
+                pool.close()
+                pool.join()
+                for res in results:
+                    res = res.get()
+                    if res:
+                        OUT.write('\t'.join(res) + '\n')
 
     @property
     def motif(self):
@@ -268,7 +281,8 @@ class BlockParser():
     BlockParser, execute the bowtie2 command and filter every mapped information on the air
     """
 
-    def __init__(self, fa, index, tagetfile, outfile, sal, formamide, probelength, hytemp, mfold_=False, verbose=False):
+    def __init__(self, fa, index, tagetfile, outfile, sal, formamide, probelength, hytemp, thread, mfold_=False,
+                 verbose=False):
         self.fa = fa
         self._prefix = os.path.splitext(os.path.split(self.fa)[1])[0]
         self.index = index
@@ -288,6 +302,8 @@ class BlockParser():
         self.mfold = mfold_
         self.filter = self.__filter()
 
+        pool = multiprocessing.Pool(processes=thread)
+        results = []
         if self.verbose:
 
             LOG.info(msg="{}\tWriting the bowtie2 results to {}".format(LOG.name, self.outfile + '.sam'))
@@ -302,10 +318,19 @@ class BlockParser():
                  "PLPsequence", 'Tm', 'isoform_nums', 'isoforms']) + '\n')
             for read in self.filter:
                 if self.mfold:
-                    if mfold(read, self.correcttemp, self.sal / 1000):
-                        OUT.write('\t'.join(read) + '\n')
+                    args = (read, self.correcttemp, self.sal / 1000)
+                    results.append(pool.apply_async(wrapperprocess, args=(args,)))
                 else:
                     OUT.write('\t'.join(read) + '\n')
+
+            if self.mfold:
+                pool.close()
+                pool.join()
+                os.system('rm *fa* -rf')
+                for res in results:
+                    res = res.get()
+                    if res:
+                        OUT.write('\t'.join(res) + '\n')
 
     @staticmethod
     def processtarget(targetfile):

@@ -41,6 +41,7 @@ def transcript(args):
     entropy = args.entropy
     hytemp = args.hytemp
     mfold = args.mfold
+    thread = args.thread
 
     if args.dnac1 >= args.dnac2:
         conc1 = args.dnac1
@@ -57,7 +58,8 @@ def transcript(args):
         runSequenceCrawler(sub, l, L, gcPercent, GCPercent, nn_table, tm, TM, X, sal, form, sp, conc1, conc2,
                            OverlapModeVal, subprefix, entropy)
         BlockParser('.'.join([subprefix, 'fastq']), index, '.'.join([outputprefix, 'layerinfo.txt']),
-                    '.'.join([subprefix, 'result']), sal, form, probelength, hytemp, mfold_=mfold, verbose=verbocity)
+                    '.'.join([subprefix, 'result']), sal, form, probelength, hytemp, thread, mfold_=mfold,
+                    verbose=verbocity)
 
 
 def junction(args):
@@ -81,6 +83,7 @@ def junction(args):
     probelength = args.probelength
     entropy = args.entropy
     hytemp = args.hytemp
+    thread = args.thread
 
     if args.dnac1 >= args.dnac2:
         conc1 = args.dnac1
@@ -98,7 +101,8 @@ def junction(args):
                            OverlapModeVal, subprefix, entropy)
 
         JuncParser('.'.join([subprefix, 'fastq']), index, os.path.join(outputprefix, 'config.txt'),
-                   '.'.join([subprefix, 'result']), sal, form, probelength, hytemp, mfold_=mfold, verbose=verbocity)
+                   '.'.join([subprefix, 'result']), sal, form, probelength, hytemp, thread, mfold_=mfold,
+                   verbose=verbocity)
 
 
 def arg():
@@ -200,6 +204,8 @@ __________              ___.          ________                .__
                                   'hybridize your probes')
     probedesign.add_argument('-mf', '--mfold', action='store_true', default=False,
                              help='mfold')
+    probedesign.add_argument('-td', '--thread', action='store', type=int, default=4,
+                             help='Multipleprocess to speed the mfold')
 
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                      description=textwrap.dedent("""
