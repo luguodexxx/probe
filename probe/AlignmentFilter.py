@@ -39,6 +39,7 @@ from Bio.SeqUtils import GC
 from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC
 from .helper import set_logging
+from multiprocessing import Pool
 
 SJMOTIF = set(["GT@AG", "CT@AC", "GC@AG", "CT@GC", "AT@AC", "GT@AT"])
 LOG = set_logging("AlignmentFilter")
@@ -62,7 +63,7 @@ def mfold(falist, ct, na_conc, type="DNA"):
     with open(faprefix + '.fa', 'w') as Fa:
         Fa.write(">{}\n{}".format(falist[0], falist[5]))
 
-    mfoldcomm = "mfold SEQ=\'{}\' NA={} NA_CONC={} T={}".format(faprefix + '.fa', type, na_conc, int(ct))
+    mfoldcomm = "mfold_mod SEQ=\'{}\' NA={} NA_CONC={} T={}".format(faprefix + '.fa', type, na_conc, int(ct))
 
     proc = subprocess.Popen(
         mfoldcomm,
@@ -88,6 +89,15 @@ def mfold(falist, ct, na_conc, type="DNA"):
         return True
     else:
         return False
+
+
+# def wrapperprocess(args):
+#     """
+#
+#     :param args:
+#     :return:
+#     """
+#     return(mfold(args))
 
 
 class SAM():
@@ -173,8 +183,10 @@ class JuncParser():
     """
     JunctParser
     """
+    # pool = Pool(processes=10)
 
-    def __init__(self, fa, index, targetfile, outfile, sal, formamide, probelength, hytemp, mfold_=False, verbose=False):
+    def __init__(self, fa, index, targetfile, outfile, sal, formamide, probelength, hytemp, mfold_=False,
+                 verbose=False):
         self.fa = fa
         self._prefix = os.path.splitext(os.path.split(self.fa)[1])[0]
         self.st, self.ed = self._prefix.split(":")[1][:-1].split('-')
