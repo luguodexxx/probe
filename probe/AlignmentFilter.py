@@ -290,7 +290,7 @@ class BlockParser():
         with open(self.outfile, 'w') as OUT:
             OUT.write('\t'.join(
                 ['FakeChrom', 'left', 'right', 'afterRC', 'beforeRC',
-                 "PLPsequence", 'Tm', 'isoform_nums', 'isoforms']) + '\n')
+                 "PLPsequence", 'Tm', 'isoform_nums', 'isoforms', 'symbolId']) + '\n')
             for read in self.filter:
                 if self.mfold:
                     args = (read, self.correcttemp, self.sal / 1000)
@@ -397,7 +397,8 @@ class BlockParser():
 
         result = []
         probeseqinfo = self.TARGET[self._prefix][:3]
-        genesymbol = self.TARGET[self._prefix][3]
+        genesymbol = self.TARGET[self._prefix][4]
+        additional = self.TARGET[self._prefix][3]
 
         samdict = defaultdict(lambda: defaultdict(list))
         for line in self.samresult:
@@ -414,7 +415,8 @@ class BlockParser():
                     left, right = line_[0].PLP
                     plpseq = generateprobe(left, right, self._probelength, probeseqinfo, self._prefix)
                     result.append(
-                        (chrom, left, right, revseq, seq, plpseq, Tm, str(len(transcriptid)), ','.join(transcriptid)))
+                        (chrom, left, right, revseq, seq, plpseq, Tm, str(len(transcriptid)), ','.join(transcriptid),additional)
+                        )
                 else:
                     continue
             else:
@@ -431,7 +433,8 @@ class BlockParser():
 
                         result.append(
                             (chrom, left, right, revseq, seq, plpseq, Tm, str(len(transcriptid)),
-                             ','.join(transcriptid)))
+                             ','.join(transcriptid),additional)
+                            )
                 else:
                     continue
         return result

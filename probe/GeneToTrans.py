@@ -31,7 +31,7 @@ def generateinfo(fasta, targetfile, outputprefix):
 
         for gene in T.readlines():
             gene = gene.strip().split('\t')
-            targetpool[gene[0]].extend(gene[1:])
+            targetpool[gene[0]].extend(gene[1:] + [gene[0]])
 
         for i in FA.readlines():
             if i.startswith('>'):
