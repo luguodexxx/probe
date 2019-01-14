@@ -144,7 +144,7 @@ class Junction:
         '''
         for j in self._info:
             chr, st, ed = re.split("-|:", j)
-            print(chr, st, ed, j)
+            # print(chr, st, ed, j)
             if not self.circ:
                 motif1, motif2, motif = Junction.junctionmotif(self.genome, chr, st, ed, self.strand)
                 seq1, seq2, seq = Junction.junctionseq(self.genome, chr, st, ed, self.strand)
