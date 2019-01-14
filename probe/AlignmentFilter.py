@@ -161,7 +161,17 @@ class JuncParser():
     JunctParser
     """
 
-    def __init__(self, fa, index, targetfile, outfile, sal, formamide, probelength, hytemp, thread, mfold_=False,
+    def __init__(self,
+                 fa,
+                 index,
+                 targetfile,
+                 outfile,
+                 sal,
+                 formamide,
+                 probelength,
+                 hytemp,
+                 thread,
+                 mfold_=False,
                  verbose=False):
         self.fa = fa
         self._prefix = os.path.splitext(os.path.split(self.fa)[1])[0]
@@ -415,8 +425,9 @@ class BlockParser():
                     left, right = line_[0].PLP
                     plpseq = generateprobe(left, right, self._probelength, probeseqinfo, self._prefix)
                     result.append(
-                        (chrom, left, right, revseq, seq, plpseq, Tm, str(len(transcriptid)), ','.join(transcriptid),additional)
-                        )
+                        (chrom, left, right, revseq, seq, plpseq, Tm, str(len(transcriptid)), ','.join(transcriptid),
+                         additional)
+                    )
                 else:
                     continue
             else:
@@ -433,8 +444,8 @@ class BlockParser():
 
                         result.append(
                             (chrom, left, right, revseq, seq, plpseq, Tm, str(len(transcriptid)),
-                             ','.join(transcriptid),additional)
-                            )
+                             ','.join(transcriptid), additional)
+                        )
                 else:
                     continue
         return result
