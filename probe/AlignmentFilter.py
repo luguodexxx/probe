@@ -93,7 +93,10 @@ class SAM():
         if not self.mapped:
             self.geneid, self.genesymbol, self.location = ["nogeneid", "nogenesymbol", "0:0:0:1"]
         else:
-            self.geneid, self.genesymbol, self.location = self.geneinfo.split("|")
+            try:
+                self.geneid, self.genesymbol, self.location = self.geneinfo.split("|")
+            except ValueError:
+                self.geneid, self.genesymbol, self.location = self.geneinfo.split("_")
 
     @property
     def proRC(self):

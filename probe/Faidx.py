@@ -280,9 +280,10 @@ def wrapperseq(seq, length=60):
 
 
 def main(file):
-    test = Faidx(file)  # /Users/zhouran/opt/proj/2018-11-17-probe/rebuild/Probes_evaluation/testFaidx.fa
-    seq = test.fetch('ENSMUST00000005815.6', 1, 6000, "+")
-    print(seq.complement.reverse)
+    test = Faidx(file)  # /Volumes/bu15191450186/zr/singlecell/10X/refdata-cellranger-mm10-2.1.0/fasta/genome.fa
+    seq = test.fetch('2', 25466732,25466832, "+")
+    print(seq)
+    # print(seq.complement.reverse)2:25466732-25466832
 
 
 if __name__ == '__main__':

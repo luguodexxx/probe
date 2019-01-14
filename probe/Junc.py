@@ -23,7 +23,7 @@ class Junction:
 
         allinfo = sj.split("_")
         self._name = sj
-        self._info = sj.split("_")
+        self._info = sj[:-1].split("_")
         self._strand = allinfo[0][-1]
         self._chrom = allinfo[0].split(":")[0]
         self.circ = circ
@@ -139,8 +139,12 @@ class Junction:
         """
         assert isinstance(self.genome, Faidx), "Faidx file must be a <class: Faidx>, not {}".format(faidx.__class__)
         res = defaultdict(lambda: defaultdict())
+        u'''
+        1.14 change the split object
+        '''
         for j in self._info:
-            chr, st, ed = re.split("-|:", j[:-1])
+            chr, st, ed = re.split("-|:", j)
+            print(chr, st, ed, j)
             if not self.circ:
                 motif1, motif2, motif = Junction.junctionmotif(self.genome, chr, st, ed, self.strand)
                 seq1, seq2, seq = Junction.junctionseq(self.genome, chr, st, ed, self.strand)
