@@ -192,6 +192,11 @@ class JuncParser():
 
         pool = multiprocessing.Pool(processes=thread)
         results = []
+        if self.verbose:
+            LOG.info(msg="{}\tWriting the bowtie2 results to {}".format(LOG.name, self.outfile + '.sam'))
+            with open(os.path.splitext(self.outfile)[0] + '.sam', 'w') as tmpSAM:
+                for read in self.samresult:
+                    tmpSAM.write(str(read) + '\n')
 
         LOG.info(msg="{}\tWriting the results to {}".format(LOG.name, self.outfile))
 
