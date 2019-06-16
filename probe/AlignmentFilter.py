@@ -24,7 +24,7 @@ class Bowtie2Error(Exception):
 
 
 # def mfold(falist, ct, na_conc, type="DNA"):
-def mfold(falist, ct, na_conc):
+def mfold(falist, ct, na_conc, detG):
     """
     calling the mfold and check the second structure
     :param fa:
@@ -50,6 +50,7 @@ def mfold(falist, ct, na_conc):
 
     try:
         with open(faprefix + ".fa.ct") as IN:
+            G = abs(float(IN.readline().split()[3]))
             res = []
             for line in IN.readlines():
                 res.extend([line.strip().split()])
@@ -62,10 +63,16 @@ def mfold(falist, ct, na_conc):
         # print(f)
         os.unlink(f)
 
-    if len(leftcheck) == 1 and len(rightcheck) == 1:
-        return falist
+    if detG == 0.0:
+        if len(leftcheck) == 1 and len(rightcheck) == 1:
+            return falist
+        else:
+            return False
     else:
-        return False
+        if G <= detG:
+            return falist
+        else:
+            return False
 
 
 def wrapperprocess(args):
@@ -174,6 +181,7 @@ class JuncParser():
                  probelength,
                  hytemp,
                  thread,
+                 detG,
                  mfold_=False,
                  verbose=False):
         self.fa = fa
@@ -190,6 +198,7 @@ class JuncParser():
         self.hytemp = hytemp
         self.correcttemp = 0.65 * self.formamide + self.hytemp
         self.mfold = mfold_
+        self.detG = detG
         self.samresult = BlockParser.processAlign(self.index, self.fa, self.sal, self.formamide)
         self.filter = self.__filter()
 
@@ -209,7 +218,7 @@ class JuncParser():
                  "PLPsequence", 'Tm', 'isoform_nums', 'isoforms']) + '\n')
             for read in self.filter:
                 if self.mfold:
-                    args = (read, self.correcttemp, self.sal / 1000)
+                    args = (read, self.correcttemp, self.sal / 1000, self.detG)
                     results.append(pool.apply_async(wrapperprocess, args=(args,)))
                 else:
                     OUT.write('\t'.join(read) + '\n')
@@ -274,7 +283,7 @@ class BlockParser():
     BlockParser, execute the bowtie2 command and filter every mapped information on the air
     """
 
-    def __init__(self, fa, index, tagetfile, outfile, sal, formamide, probelength, hytemp, thread, mfold_=False,
+    def __init__(self, fa, index, tagetfile, outfile, sal, formamide, probelength, hytemp, thread, detG, mfold_=False,
                  verbose=False):
         self.fa = fa
         self._prefix = os.path.splitext(os.path.split(self.fa)[1])[0]
@@ -293,6 +302,7 @@ class BlockParser():
         self.hytemp = hytemp
         self.correcttemp = 0.65 * self.formamide + self.hytemp
         self.mfold = mfold_
+        self.detG = detG
         self.filter = self.__filter()
 
         pool = multiprocessing.Pool(processes=thread)
@@ -311,7 +321,7 @@ class BlockParser():
                  "PLPsequence", 'Tm', 'isoform_nums', 'isoforms', 'symbolId']) + '\n')
             for read in self.filter:
                 if self.mfold:
-                    args = (read, self.correcttemp, self.sal / 1000)
+                    args = (read, self.correcttemp, self.sal / 1000, self.detG)
                     results.append(pool.apply_async(wrapperprocess, args=(args,)))
                 else:
                     OUT.write('\t'.join(read) + '\n')

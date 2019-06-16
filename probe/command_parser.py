@@ -42,6 +42,7 @@ def transcript(args):
     hytemp = args.hytemp
     mfold = args.mfold
     thread = args.thread
+    detG = args.detG
 
     if args.dnac1 >= args.dnac2:
         conc1 = args.dnac1
@@ -58,7 +59,7 @@ def transcript(args):
         runSequenceCrawler(sub, l, L, gcPercent, GCPercent, nn_table, tm, TM, X, sal, form, sp, conc1, conc2,
                            OverlapModeVal, subprefix, entropy)
         BlockParser('.'.join([subprefix, 'fastq']), index, '.'.join([outputprefix, 'layerinfo.txt']),
-                    '.'.join([subprefix, 'result']), sal, form, probelength, hytemp, thread, mfold_=mfold,
+                    '.'.join([subprefix, 'result']), sal, form, probelength, hytemp, thread, detG, mfold_=mfold,
                     verbose=verbocity)
 
 
@@ -101,7 +102,7 @@ def junction(args):
                            OverlapModeVal, subprefix, entropy)
 
         JuncParser('.'.join([subprefix, 'fastq']), index, os.path.join(outputprefix, 'config.txt'),
-                   '.'.join([subprefix, 'result']), sal, form, probelength, hytemp, thread, mfold_=mfold,
+                   '.'.join([subprefix, 'result']), sal, form, probelength, hytemp, thread, detG, mfold_=mfold,
                    verbose=verbocity)
 
 
@@ -203,7 +204,10 @@ __________              ___.          ________                .__
                              help='The temperature at which you want to '
                                   'hybridize your probes')
     probedesign.add_argument('-mf', '--mfold', action='store_true', default=False,
-                             help='mfold')
+                             help='')
+    probedesign.add_argument('-dG', '--detG', action='store', type=float, default=0.0,
+                             help='Accept detG value filtering for secondary structure check using mfold. \
+                             Probes with absolute values of detG lower than this argument will be kept.')
     probedesign.add_argument('-td', '--thread', action='store', type=int, default=4,
                              help='Multipleprocess to speed the mfold')
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -211,10 +215,9 @@ __________              ___.          ________                .__
 __________              ___.          ________                .__               
 \______   \_______  ____\_ |__   ____ \______ \   ____   _____|__| ____   ____  
  |     ___/\_  __ \/  _ \| __ \_/ __ \ |    |  \_/ __ \ /  ___/  |/ ___\ /    \ 
- |    |     |  | \(  <_> ) \_\ \  ___/ |    `   \  ___/ \___ \|  / /_/  >   |  \
-
+ |    |     |  | \(  <_> ) \_\ \  ___/ |    `   \  ___/ \___ \|  / /_/  >   |  \\
  |____|     |__|   \____/|___  /\___  >_______  /\___  >____  >__\___  /|___|  /
-                             \/     \/        \/     \/     \/  /_____/      \/                              """))
+                             \/     \/        \/     \/     \/  /_____/      \/                             """))
 
     subparsers = parser.add_subparsers(title='subcommands',
                                        description='valid subcommands',
