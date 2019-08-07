@@ -12,7 +12,7 @@ from Bio.SeqUtils import MeltingTemp as mt
 from .GeneToTrans import generateinfo
 from .GenerateBlock import runSequenceCrawler
 from .AlignmentFilter import BlockParser, JuncParser
-from .Junc import fetchjunc,fetchcirc
+from .Junc import fetchjunc, fetchcirc
 from .version import __version__
 
 
@@ -259,6 +259,11 @@ __________              ___.          ________                .__
                              Probes with absolute values of detG lower than this argument will be kept.')
     probedesign.add_argument('-td', '--thread', action='store', type=int, default=4,
                              help='Multipleprocess to speed the mfold')
+    probedesign.add_argument('-bwp', '--bw_param', action='store',
+                             default='bw_param',
+                             type=str,
+                             help='bowtie2 parameters')
+
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                      description=textwrap.dedent("""
 __________              ___.          ________                .__               

@@ -1,18 +1,19 @@
 #!/usr/bin/env python
 
-import sys
-import os
 import glob
-from collections import defaultdict
-from itertools import chain
+import multiprocessing
+import optparse
+import os
 import random
 import subprocess
-import optparse
-from Bio.SeqUtils import MeltingTemp as mt
-from Bio.SeqUtils import GC
-from Bio.Seq import Seq
+import sys
+from collections import defaultdict
+from itertools import chain
+
 from Bio.Alphabet import IUPAC
-import multiprocessing
+from Bio.Seq import Seq
+from Bio.SeqUtils import MeltingTemp as mt
+
 from .helper import set_logging
 
 SJMOTIF = set(["GT@AG", "CT@AC", "GC@AG", "CT@GC", "AT@AC", "GT@AT"])
@@ -167,9 +168,6 @@ def locationfilter(fake_chrname):
 
 
 class JuncParser():
-    """
-    JunctParser
-    """
 
     def __init__(self,
                  fa,
@@ -259,22 +257,27 @@ class JuncParser():
             samdict[line.f_chr][line.location].append(line)
 
         for fakechrom, internalinfo in samdict.items():
-            if locationfilter(fakechrom):
-                for location, samline in internalinfo.items():
-                    if samline.internal_start <= self.st and samline.internal_end >= self.ed:
-                        result.append(line)
-                    else:
-                        if not line.checkFlag():
-                            chrom, start, stop, seq, Tm, revseq = line.f_chr, line.abs_start, line.abs_end, line.seq, line.Tm, \
-                                                                  line.proRC
-                            left, right = line.PLP
-                            plpseq = generateprobe(left, right, self._probelength, probeseqinfo, self._prefix)
 
-                            result.append(
-                                (chrom, self.motif, "yes" if self.motif in SJMOTIF else "no", left, right, revseq, seq,
-                                 plpseq, Tm, '1', line.geneinfo))
-                        else:
+            if locationfilter(fakechrom):
+                for location, samlines in internalinfo.items():
+                    for samline in samlines:
+                        if samline.internal_start <= self.st and samline.internal_end >= self.ed:
                             continue
+                            # result.append(line)
+                        else:
+                            if not line.checkFlag():
+                                chrom, start, stop, seq, Tm, revseq = line.f_chr, line.abs_start, line.abs_end, line.seq, line.Tm, \
+                                                                      line.proRC
+                                left, right = line.PLP
+                                plpseq = generateprobe(left, right, self._probelength, probeseqinfo, self._prefix)
+
+                                result.append(
+                                    (chrom, self.motif, "yes" if self.motif in SJMOTIF else "no", left, right, revseq, seq,
+                                     plpseq, Tm, '1', line.geneinfo))
+                            else:
+                                continue
+            else:
+                continue
         return result
 
 
@@ -390,7 +393,8 @@ class BlockParser():
             raise FileNotFoundError('bowtie2 were not found! please install bowtie2')
 
         bowtie2 = 'bowtie2'
-        params = '--no-hd -t -k 10 --local -D 20 -R 3 -N 1 -L 20 -i C,4 --score-min G,1,4 --end-to-end'
+        params = '--no-hd -t -k 100 --very-sensitive --end-to-end'
+        # params = '--no-hd -t -k 10 --local -D 20 -R 3 -N 1 -L 20 -i C,4 --score-min G,1,4 --end-to-end'
         bowtie2comm = [
             bowtie2,
             '-x', index,
