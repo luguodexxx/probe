@@ -7,12 +7,14 @@ import os
 import sys
 import argparse
 import textwrap
+from Bio.SeqUtils import MeltingTemp as mt
+
 from .GeneToTrans import generateinfo
 from .GenerateBlock import runSequenceCrawler
 from .AlignmentFilter import BlockParser, JuncParser
-from .Junc import fetchjunc
+from .Junc import fetchjunc,fetchcirc
 from .version import __version__
-from Bio.SeqUtils import MeltingTemp as mt
+
 
 
 def transcript(args):
@@ -86,6 +88,8 @@ def junction(args):
     hytemp = args.hytemp
     thread = args.thread
     mfold = args.mfold
+    detG = args.detG
+
     if args.dnac1 >= args.dnac2:
         conc1 = args.dnac1
         conc2 = args.dnac2
@@ -96,6 +100,51 @@ def junction(args):
 
     exec('nn_table = mt.%s' % args.nn_table, None, globals())
     falist = fetchjunc(fastaG, targetfile, outputprefix)
+    for sub in falist:
+        subprefix = os.path.splitext(sub)[0]
+        runSequenceCrawler(sub, l, L, gcPercent, GCPercent, nn_table, tm, TM, X, sal, form, sp, conc1, conc2,
+                           OverlapModeVal, subprefix, entropy)
+
+        JuncParser('.'.join([subprefix, 'fastq']), index, os.path.join(outputprefix, 'config.txt'),
+                   '.'.join([subprefix, 'result']), sal, form, probelength, hytemp, thread, detG, mfold_=mfold,
+                   verbose=verbocity)
+
+
+def circ(args):
+
+    fastaG = args.fastaG
+    targetfile = args.target
+    outputprefix = args.outprefix
+    l = args.minLength
+    L = args.maxLength
+    gcPercent = args.min_GC
+    GCPercent = args.max_GC
+    tm = args.min_Tm
+    TM = args.max_Tm
+    X = args.prohibitedSeqs
+    sal = args.salt
+    form = args.formamide
+    sp = args.Spacing
+    OverlapModeVal = args.OverlapMode
+    verbocity = args.verbose
+    index = args.index
+    probelength = args.probelength
+    entropy = args.entropy
+    hytemp = args.hytemp
+    thread = args.thread
+    mfold = args.mfold
+    detG = args.detG
+
+    if args.dnac1 >= args.dnac2:
+        conc1 = args.dnac1
+        conc2 = args.dnac2
+
+    else:
+        conc1 = args.dnac2
+        conc2 = args.dnac1
+
+    exec('nn_table = mt.%s' % args.nn_table, None, globals())
+    falist = fetchcirc(fastaG, targetfile, outputprefix)
     for sub in falist:
         subprefix = os.path.splitext(sub)[0]
         runSequenceCrawler(sub, l, L, gcPercent, GCPercent, nn_table, tm, TM, X, sal, form, sp, conc1, conc2,
@@ -241,7 +290,12 @@ __________              ___.          ________                .__
     junction_parse.set_defaults(func=junction)
 
     circ_parse = subparsers.add_parser('circ', parents=[probedesign], help='For circRNA junction')
-    index_parse = subparsers.add_parser('index', parents=[probedesign], help='For index, still in test')
+    circ_parse.add_argument('-faG', '--fastaG', action='store', required=True,
+                                type=str,
+                                help='whole genome fasta file')
+    circ_parse.set_defaults(func=circ)
+
+    # index_parse = subparsers.add_parser('index', parents=[probedesign], help='For index, still in test')
 
     if len(sys.argv) == 1:
         parser.print_help()

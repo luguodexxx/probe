@@ -143,11 +143,15 @@ class Junction:
         1.14 change the split object
         '''
         for j in self._info:
-            chr, st, ed = re.split("-|:", j)
-            # print(chr, st, ed, j)
+
+            u'''
+            8.3 remove last string, that's the strand
+            '''
+            chr_, st, ed = re.split("-|:", j[:-1])
+
             if not self.circ:
-                motif1, motif2, motif = Junction.junctionmotif(self.genome, chr, st, ed, self.strand)
-                seq1, seq2, seq = Junction.junctionseq(self.genome, chr, st, ed, self.strand)
+                motif1, motif2, motif = Junction.junctionmotif(self.genome, chr_, st, ed, self.strand)
+                seq1, seq2, seq = Junction.junctionseq(self.genome, chr_, st, ed, self.strand)
 
                 """
                 We checked the splicing motif at the junction site. 
@@ -156,18 +160,19 @@ class Junction:
                 """
 
                 if not Junction.checkmotif(motif, SJMOTIF):
-                    motif1_, motif2_, motif_ = Junction.junctionmotif(self.genome, chr, st, ed, self.strand, offset=1)
+                    motif1_, motif2_, motif_ = Junction.junctionmotif(self.genome, chr_, st, ed, self.strand, offset=1)
                     if Junction.checkmotif(motif_, SJMOTIF):
                         LOG.warn(
                             msg="{}\tIt seems the junction sites [{}] were on exon, not intronic. Already corrected.".format(
                                 LOG.name, self._name))
                         motif1, motif2, motif = motif1_, motif2_, motif_
-                        seq1, seq2, seq = Junction.junctionseq(self.genome, chr, st, ed, self.strand, offset=1)
+                        seq1, seq2, seq = Junction.junctionseq(self.genome, chr_, st, ed, self.strand, offset=1)
 
                 res[j]["seq"] = seq
                 res[j]["motif"] = motif
             else:
-                seq, motif = Junction.circseq(self.genome, chr, st, ed, strand)
+                seq, motif = Junction.circseq(self.genome, chr_, st, ed, self.strand)
+                res[j]["seq"] = seq
                 res[j]["motif"] = motif
 
         return res
@@ -222,6 +227,7 @@ def fetchjunc(genome, junctionfile, outdir):
         checkdir(outdir)
     genome = Faidx(genome)
     junctionlist = targetfile(junctionfile)
+
     configprefix = open(os.path.join(outdir, 'config.txt'), 'w')
 
     for j in junctionlist:
@@ -250,12 +256,18 @@ def fetchcirc(genome, junctionfile, outdir):
         checkdir(outdir)
     genome = Faidx(genome)
     junctionlist = targetfile(junctionfile)
+    configprefix = open(os.path.join(outdir, 'config.txt'), 'w')
+
     for j in junctionlist:
         junctionres = Junction(j, genome, circ=True)
+        index = 0
         for k, v in junctionres.junc_for_seq.items():
             filedir = os.path.join(outdir, junctionres.junctionname)
             newheader = ":".join([k, v["motif"]])
             filename = os.path.join(filedir, newheader + ".fasta")
+
+            configprefix.write('\t'.join([newheader] + junctionlist[j][index].split(';')) + '\n')
+            index += 1
 
             filelist.append(filename)
             checkdir(filedir)
@@ -263,6 +275,7 @@ def fetchcirc(genome, junctionfile, outdir):
                 OUT.write(">" + newheader + "\n")
                 OUT.write(v["seq"] + "\n")
             filelist.append(filename)
+    configprefix.close()
     return filelist
 
 

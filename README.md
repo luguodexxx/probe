@@ -1,4 +1,5 @@
 ## ProbeDesign: A RNA probe design tools [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+
 <pre>
 __________              ___.          ________                .__               
 \______   \_______  ____\_ |__   ____ \______ \   ____   _____|__| ____   ____  
@@ -24,15 +25,26 @@ There are two function.
 
 Generate the probe based on the transcript ID.
 
+```shell
+probedesign transcripts -index TranscriptIndex -ta example/test.id
+```
+
 #### junction
 
 Generate the probe based on the junction information.
 
+```shell
+probedesign junction -faG GenomeFastaFile -ta example/test.junction -index GenomeIndex.bowtie2
+```
 
-TODO:
-1. 生成index的工具
+#### circ
 
-~~2. 添加二级结构的检测~~
+Generate the probe based on the circ-junction information.
+
+```shell
+probedesign circ -faG GenomeFastaFile -ta example/test.circRNA -index GenomeIndex.bowtie2
+```
+
 
 ### Reference
 We generate the probe followed the same filter conditions with blockParse.py in [OligoMiner](https://github.com/brianbeliveau/OligoMiner)
