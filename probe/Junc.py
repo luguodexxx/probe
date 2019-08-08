@@ -147,7 +147,7 @@ class Junction:
             u'''
             8.3 remove last string, that's the strand
             '''
-            chr_, st, ed = re.split("-|:", j[:-1])
+            chr_, st, ed = re.split("-|:", j)
 
             if not self.circ:
                 motif1, motif2, motif = Junction.junctionmotif(self.genome, chr_, st, ed, self.strand)
