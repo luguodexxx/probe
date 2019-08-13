@@ -119,7 +119,7 @@ class Junction:
         seq1 = faidx.fetch(chr, int(st), int(st) + 39, strand)
         motif1 = faidx.fetch(chr, int(st) - 1, int(st), strand)
 
-        seq2 = faidx.fetch(chr, int(ed) - 40, int(ed), strand)
+        seq2 = faidx.fetch(chr, int(ed) - 39, int(ed), strand)
         motif2 = faidx.fetch(chr, int(ed), int(ed) + 1, strand)
         if strand == "+":
             seq = seq2.realseq + seq1.realseq
