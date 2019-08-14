@@ -157,7 +157,7 @@ class Junction:
 
             if not self.circ:
                 motif1, motif2, motif = Junction.junctionmotif(self.genome, chr_, st, ed, self.strand)
-                seq1, seq2, seq = Junction.junctionseq(self.genome, chr_, st, ed, self.strand)
+                seq1, seq2, seq = Junction.junctionseq(self.genome, chr_, st, ed, self.strand, circ=True)
 
                 """
                 We checked the splicing motif at the junction site. 
