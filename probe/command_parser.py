@@ -152,7 +152,7 @@ def circ(args):
 
         JuncParser('.'.join([subprefix, 'fastq']), index, os.path.join(outputprefix, 'config.txt'),
                    '.'.join([subprefix, 'result']), sal, form, probelength, hytemp, thread, detG, mfold_=mfold,
-                   verbose=verbocity, circ=True)
+                   verbose=verbocity)
 
 
 def arg():

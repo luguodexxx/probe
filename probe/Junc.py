@@ -60,7 +60,7 @@ class Junction:
         return False
 
     @staticmethod
-    def junctionseq(faidx, chr, st, ed, strand, offset=0):
+    def junctionseq(faidx, chr, st, ed, strand, offset=0, circ=False):
         """
 
         :param faidx: genome Faidx
@@ -75,9 +75,15 @@ class Junction:
         seq1 = faidx.fetch(chr, int(st) - 40 + offset, int(st) - 1 + offset, strand)
         seq2 = faidx.fetch(chr, int(ed) - offset, int(ed) + 39 - offset, strand)
         if strand == "+":
-            seq = seq1.realseq + seq2.realseq
+            if circ:
+                seq = seq2.realseq + seq1.realseq
+            else:
+                seq = seq1.realseq + seq2.realseq
         else:
-            seq = seq2.realseq + seq1.realseq
+            if circ:
+                seq = seq1.realseq + seq2.realseq
+            else:
+                seq = seq2.realseq + seq1.realseq
 
         return seq1, seq2, seq
 

@@ -180,7 +180,6 @@ class JuncParser():
                  hytemp,
                  thread,
                  detG,
-                 circ=False,
                  mfold_=False,
                  verbose=False):
         self.fa = fa
@@ -199,7 +198,6 @@ class JuncParser():
         self.mfold = mfold_
         self.detG = detG
         self.samresult = BlockParser.processAlign(self.index, self.fa, self.sal, self.formamide)
-        self.circ = circ
         self.filter = self.__filter()
 
 
@@ -448,7 +446,7 @@ class BlockParser():
                     chrom, seq, Tm, revseq = line_[0].f_chr, line_[0].seq, line_[0].Tm, \
                                              line_[0].proRC
                     left, right = line_[0].PLP
-                    plpseq = generateprobe(left, right, self._probelength, probeseqinfo, self._prefix, circ=self.circ)
+                    plpseq = generateprobe(left, right, self._probelength, probeseqinfo, self._prefix)
                     result.append(
                         (chrom, left, right, revseq, seq, plpseq, Tm, str(len(transcriptid)), ','.join(transcriptid),
                          additional)
@@ -465,7 +463,7 @@ class BlockParser():
                         chrom, seq, Tm, revseq = line_[0].f_chr, line_[0].seq, line_[0].Tm, \
                                                  line_[0].proRC
                         left, right = line_[0].PLP
-                        plpseq = generateprobe(left, right, self._probelength, probeseqinfo, self._prefix,circ=self.circ)
+                        plpseq = generateprobe(left, right, self._probelength, probeseqinfo, self._prefix)
 
                         result.append(
                             (chrom, left, right, revseq, seq, plpseq, Tm, str(len(transcriptid)),
@@ -476,7 +474,7 @@ class BlockParser():
         return result
 
 
-def generateprobe(left, right, probelength, configinfo, hostname, gccontent=0.5, circ=False):
+def generateprobe(left, right, probelength, configinfo, hostname, gccontent=0.5):
     """
 
     :param left:
@@ -488,10 +486,7 @@ def generateprobe(left, right, probelength, configinfo, hostname, gccontent=0.5,
     :param circ:
     :return:
     """
-    if circ:
-        left, right = right, left
-    else:
-        pass
+
     firbc, secbc, thirdbc = configinfo
     alignedlength = len(left + right)
     retain = probelength - (alignedlength + len(firbc) + len(secbc) + len(thirdbc))
