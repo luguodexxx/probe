@@ -13,6 +13,15 @@ SJMOTIF = set(["GT@AG", "CT@AC", "GC@AG", "CT@GC", "AT@AC", "GT@AT"])
 
 LOG = set_logging("JunctionFetch")
 
+def rev_strand(strand):
+    """
+    reverse the strand
+    :param strand:
+    :return:
+    """
+    if strand == "+":
+        return "-"
+    return "+"
 
 class Junction:
     """
@@ -73,18 +82,15 @@ class Junction:
         """
         assert isinstance(faidx, Faidx), "Faidx file must be a <class: Faidx>, not {}".format(faidx.__class__)
 
-        def rev_strand(strand):
-            """
+        seq1 = faidx.fetch(chr,
+                           int(st) - 40 + offset,
+                           int(st) - 1 + offset,
+                           rev_strand(strand))
 
-            :param strand:
-            :return:
-            """
-            if strand == "+":
-                return "-"
-            return "+"
-
-        seq1 = faidx.fetch(chr, int(st) - 40 + offset, int(st) - 1 + offset, rev_strand(strand))
-        seq2 = faidx.fetch(chr, int(ed) - offset, int(ed) + 39 - offset, rev_strand(strand))
+        seq2 = faidx.fetch(chr,
+                           int(ed) - offset,
+                           int(ed) + 39 - offset,
+                           rev_strand(strand))
 
         if strand == "+":
             if circ:
@@ -123,7 +129,7 @@ class Junction:
         return motif1, motif2, motif
 
     @staticmethod
-    def circseq(faidx, chr, st, ed, strand):
+    def circmotif(faidx, chr, st, ed, strand):
         """
 
         :param faidx:
@@ -134,18 +140,15 @@ class Junction:
         :return:
         """
         assert isinstance(faidx, Faidx), "Faidx file must be a <class: Faidx>, not {}".format(faidx.__class__)
-        seq1 = faidx.fetch(chr, int(st), int(st) + 39, strand)
         motif1 = faidx.fetch(chr, int(st) - 1, int(st), strand)
-
-        seq2 = faidx.fetch(chr, int(ed) - 39, int(ed), strand)
         motif2 = faidx.fetch(chr, int(ed), int(ed) + 1, strand)
+
         if strand == "+":
-            seq = seq2.realseq + seq1.realseq
             motif = motif2.realseq + "@" + motif1.realseq
         else:
-            seq = seq1.realseq + seq2.realseq
             motif = motif1.realseq + "@" + motif2.realseq
-        return seq, motif
+
+        return motif1, motif2, motif
 
     @property
     def junc_for_seq(self):
@@ -169,12 +172,12 @@ class Junction:
 
             if not self.circ:
                 motif1, motif2, motif = Junction.junctionmotif(self.genome, chr_, st, ed, self.strand)
-                seq1, seq2, seq = Junction.junctionseq(self.genome, chr_, st, ed, self.strand, circ=True)
+                seq1, seq2, seq = Junction.junctionseq(self.genome, chr_, st, ed, self.strand, circ=False)
 
                 """
                 We checked the splicing motif at the junction site. 
                 if User gave a exon junction site, we would check the motif after correcting to intronic location.
-                
+
                 """
 
                 if not Junction.checkmotif(motif, SJMOTIF):
@@ -189,7 +192,9 @@ class Junction:
                 res[j]["seq"] = seq
                 res[j]["motif"] = motif
             else:
-                seq, motif = Junction.circseq(self.genome, chr_, st, ed, self.strand)
+                motif1, motif2, motif = Junction.circmotif(self.genome, chr_, st, ed, self.strand)
+                _, _, seq = Junction.junctionseq(self.genome, chr_, st, ed, self.strand, circ=True)
+
                 res[j]["seq"] = seq
                 res[j]["motif"] = motif
 
