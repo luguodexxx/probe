@@ -100,12 +100,12 @@ class Junction:
                                rev_strand(strand))
 
         if strand == "+":
-            if circ:
+            if not circ:
                 seq = seq2.realseq + seq1.realseq
             else:
                 seq = seq1.realseq + seq2.realseq
         else:
-            if circ:
+            if not circ:
                 seq = seq1.realseq + seq2.realseq
             else:
                 seq = seq2.realseq + seq1.realseq
