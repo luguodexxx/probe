@@ -81,16 +81,23 @@ class Junction:
         :return: upstream, downstream and combined sequence
         """
         assert isinstance(faidx, Faidx), "Faidx file must be a <class: Faidx>, not {}".format(faidx.__class__)
+        if circ:
+            seq1 = faidx.fetch(chr,
+                               int(st), int(st) + 39,
+                               rev_strand(strand))
+            seq2 = faidx.fetch(chr,
+                               int(ed) - 39, int(ed),
+                               rev_strand(strand))
+        else:
+            seq1 = faidx.fetch(chr,
+                               int(st) - 40 + offset,
+                               int(st) - 1 + offset,
+                               rev_strand(strand))
 
-        seq1 = faidx.fetch(chr,
-                           int(st) - 40 + offset,
-                           int(st) - 1 + offset,
-                           rev_strand(strand))
-
-        seq2 = faidx.fetch(chr,
-                           int(ed) - offset,
-                           int(ed) + 39 - offset,
-                           rev_strand(strand))
+            seq2 = faidx.fetch(chr,
+                               int(ed) - offset,
+                               int(ed) + 39 - offset,
+                               rev_strand(strand))
 
         if strand == "+":
             if circ:
