@@ -286,7 +286,7 @@ class BlockParser():
     BlockParser, execute the bowtie2 command and filter every mapped information on the air
     """
 
-    def __init__(self, fa, index, tagetfile, outfile, sal, formamide, probelength, hytemp, thread, detG, mfold_=False,
+    def __init__(self, fa, index, tagetfile, outfile, sal, formamide, probelength, hytemp, thread, detG, cDNA, mfold_=False,
                  verbose=False):
         self.fa = fa
         self._prefix = os.path.splitext(os.path.split(self.fa)[1])[0]
@@ -306,6 +306,7 @@ class BlockParser():
         self.correcttemp = 0.65 * self.formamide + self.hytemp
         self.mfold = mfold_
         self.detG = detG
+        self.cDNA = cDNA
         self.filter = self.__filter()
 
         pool = multiprocessing.Pool(processes=thread)
@@ -445,7 +446,7 @@ class BlockParser():
                     chrom, seq, Tm, revseq = line_[0].f_chr, line_[0].seq, line_[0].Tm, \
                                              line_[0].proRC
                     left, right = line_[0].PLP
-                    plpseq = generateprobe(left, right, self._probelength, probeseqinfo, self._prefix)
+                    plpseq = generateprobe(left, right, self._probelength, probeseqinfo, self._prefix, self.cDNA)
                     result.append(
                         (chrom, left, right, revseq, seq, plpseq, Tm, str(len(transcriptid)), ','.join(transcriptid),
                          additional)
@@ -462,7 +463,7 @@ class BlockParser():
                         chrom, seq, Tm, revseq = line_[0].f_chr, line_[0].seq, line_[0].Tm, \
                                                  line_[0].proRC
                         left, right = line_[0].PLP
-                        plpseq = generateprobe(left, right, self._probelength, probeseqinfo, self._prefix)
+                        plpseq = generateprobe(left, right, self._probelength, probeseqinfo, self._prefix, self.cDNA)
 
                         result.append(
                             (chrom, left, right, revseq, seq, plpseq, Tm, str(len(transcriptid)),
@@ -473,7 +474,7 @@ class BlockParser():
         return result
 
 
-def generateprobe(left, right, probelength, configinfo, hostname, gccontent=0.5):
+def generateprobe(left, right, probelength, configinfo, hostname, cDNA, gccontent=0.5):
     """
 
     :param samline:
@@ -511,8 +512,10 @@ def generateprobe(left, right, probelength, configinfo, hostname, gccontent=0.5)
 
     # leftseq = ''.join([random.choice(['A', 'T', 'C', 'G']) for i in range(leftrandom)])
     # rightseq = ''.join([random.choice(['A', 'T', 'C', 'G']) for i in range(rightrandom)])
-
-    return "".join([right, leftseq, firbc, secbc, thirdbc, rightseq, left])
+    if cDNA:
+        return "".join([str(Seq(left, IUPAC.unambiguous_dna).reverse_complement()), leftseq, firbc, secbc, thirdbc, rightseq, str(Seq(right, IUPAC.unambiguous_dna).reverse_complement())])
+    else:
+        return "".join([right, leftseq, firbc, secbc, thirdbc, rightseq, left])
 
 
 def _parse_args():

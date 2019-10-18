@@ -45,6 +45,7 @@ def transcript(args):
     mfold = args.mfold
     thread = args.thread
     detG = args.detG
+    cDNA = args.cDNA
 
     if args.dnac1 >= args.dnac2:
         conc1 = args.dnac1
@@ -61,7 +62,7 @@ def transcript(args):
         runSequenceCrawler(sub, l, L, gcPercent, GCPercent, nn_table, tm, TM, X, sal, form, sp, conc1, conc2,
                            OverlapModeVal, subprefix, entropy)
         BlockParser('.'.join([subprefix, 'fastq']), index, '.'.join([outputprefix, 'layerinfo.txt']),
-                    '.'.join([subprefix, 'result']), sal, form, probelength, hytemp, thread, detG, mfold_=mfold,
+                    '.'.join([subprefix, 'result']), sal, form, probelength, hytemp, thread, detG, cDNA, mfold_=mfold,
                     verbose=verbocity)
 
 
@@ -263,6 +264,8 @@ __________              ___.          ________                .__
                              default='bw_param',
                              type=str,
                              help='bowtie2 parameters')
+    probedesign.add_argument('-cD', '--cDNA', action='store_true', default=False,
+                             help='cDNA mode, if true, padlock probes will be hybridized to cDNA instead of RNA')
 
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                      description=textwrap.dedent("""
