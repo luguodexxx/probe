@@ -90,6 +90,7 @@ def junction(args):
     thread = args.thread
     mfold = args.mfold
     detG = args.detG
+    cDNA = args.cDNA
 
     if args.dnac1 >= args.dnac2:
         conc1 = args.dnac1
@@ -107,7 +108,7 @@ def junction(args):
                            OverlapModeVal, subprefix, entropy)
 
         JuncParser('.'.join([subprefix, 'fastq']), index, os.path.join(outputprefix, 'config.txt'),
-                   '.'.join([subprefix, 'result']), sal, form, probelength, hytemp, thread, detG, mfold_=mfold,
+                   '.'.join([subprefix, 'result']), sal, form, probelength, hytemp, thread, detG, cDNA, mfold_=mfold,
                    verbose=verbocity)
 
 
@@ -135,6 +136,7 @@ def circ(args):
     thread = args.thread
     mfold = args.mfold
     detG = args.detG
+    cDNA = args.cDNA
 
     if args.dnac1 >= args.dnac2:
         conc1 = args.dnac1
@@ -152,7 +154,7 @@ def circ(args):
                            OverlapModeVal, subprefix, entropy)
 
         JuncParser('.'.join([subprefix, 'fastq']), index, os.path.join(outputprefix, 'config.txt'),
-                   '.'.join([subprefix, 'result']), sal, form, probelength, hytemp, thread, detG, mfold_=mfold,
+                   '.'.join([subprefix, 'result']), sal, form, probelength, hytemp, thread, detG, cDNA, mfold_=mfold,
                    verbose=verbocity)
 
 

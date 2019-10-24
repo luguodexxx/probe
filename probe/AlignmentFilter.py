@@ -180,6 +180,7 @@ class JuncParser():
                  hytemp,
                  thread,
                  detG,
+                 cDNA,
                  mfold_=False,
                  verbose=False):
         self.fa = fa
@@ -197,6 +198,7 @@ class JuncParser():
         self.correcttemp = 0.65 * self.formamide + self.hytemp
         self.mfold = mfold_
         self.detG = detG
+        self.cDNA = cDNA
         self.samresult = BlockParser.processAlign(self.index, self.fa, self.sal, self.formamide)
         self.filter = self.__filter()
 
@@ -248,7 +250,7 @@ class JuncParser():
                 chrom, start, stop, seq, Tm, revseq = line.f_chr, line.abs_start, line.abs_end, line.seq, line.Tm, \
                                                       line.proRC
                 left, right = line.PLP
-                plpseq = generateprobe(left, right, self._probelength, probeseqinfo, self._prefix)
+                plpseq = generateprobe(left, right, self._probelength, probeseqinfo, self._prefix, self.cDNA)
 
                 result.append((chrom, self.motif,
                                "yes" if self.motif in SJMOTIF else "no", left, right, revseq, seq, plpseq, Tm, '1',
@@ -269,7 +271,7 @@ class JuncParser():
                                 chrom, start, stop, seq, Tm, revseq = line.f_chr, line.abs_start, line.abs_end, line.seq, line.Tm, \
                                                                       line.proRC
                                 left, right = line.PLP
-                                plpseq = generateprobe(left, right, self._probelength, probeseqinfo, self._prefix)
+                                plpseq = generateprobe(left, right, self._probelength, probeseqinfo, self._prefix, self.cDNA)
 
                                 result.append(
                                     (chrom, self.motif, "yes" if self.motif in SJMOTIF else "no", left, right, revseq, seq,
