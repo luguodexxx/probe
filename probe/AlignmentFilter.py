@@ -216,8 +216,9 @@ class JuncParser():
                 ['FakeChrom', 'motif', 'canonical', 'left', 'right', 'afterRC', 'beforeRC',
                  "PLPsequence", 'Tm', 'isoform_nums', 'isoforms']) + '\n')
             for read in self.filter:
+                LOG.info(msg="mfold processing")
                 if self.mfold:
-                    LOG.info(msg="mfold processing")
+                    # LOG.info(msg="mfold processing")
                     args = (read, self.correcttemp, self.sal / 1000, self.detG)
                     results.append(pool.apply_async(wrapperprocess, args=(args,)))
                 else:
@@ -325,6 +326,7 @@ class BlockParser():
                 ['FakeChrom', 'left', 'right', 'afterRC', 'beforeRC',
                  "PLPsequence", 'Tm', 'isoform_nums', 'isoforms', 'symbolId']) + '\n')
             for read in self.filter:
+                LOG.info(msg="mfold processing")
                 if self.mfold:
                     args = (read, self.correcttemp, self.sal / 1000, self.detG)
                     results.append(pool.apply_async(wrapperprocess, args=(args,)))
