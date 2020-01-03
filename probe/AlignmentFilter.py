@@ -217,6 +217,7 @@ class JuncParser():
                  "PLPsequence", 'Tm', 'isoform_nums', 'isoforms']) + '\n')
             for read in self.filter:
                 if self.mfold:
+                    LOG.info(msg="mfold processing")
                     args = (read, self.correcttemp, self.sal / 1000, self.detG)
                     results.append(pool.apply_async(wrapperprocess, args=(args,)))
                 else:
