@@ -172,7 +172,7 @@ class SAM:
         """
         gc = sum(self.seq.count(x) for x in ["G", "C", "g", "c", "S", "s"])
         try:
-            return gc * 100.0 / len(sequence)
+            return gc * 100.0 / len(self.seq)
         except ZeroDivisionError:
             return 0.0
 
