@@ -16,7 +16,6 @@ from .Junc import fetchjunc, fetchcirc
 from .version import __version__
 
 
-
 def transcript(args):
     """
     too many parameters!!!
@@ -113,7 +112,6 @@ def junction(args):
 
 
 def circ(args):
-
     fastaG = args.fastaG
     targetfile = args.target
     outputprefix = args.outprefix
@@ -301,8 +299,8 @@ __________              ___.          ________                .__
 
     circ_parse = subparsers.add_parser('circ', parents=[probedesign], help='For circRNA junction')
     circ_parse.add_argument('-faG', '--fastaG', action='store', required=True,
-                                type=str,
-                                help='whole genome fasta file')
+                            type=str,
+                            help='whole genome fasta file')
     circ_parse.set_defaults(func=circ)
 
     # index_parse = subparsers.add_parser('index', parents=[probedesign], help='For index, still in test')

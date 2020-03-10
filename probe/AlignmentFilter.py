@@ -7,8 +7,11 @@ import os
 import random
 import subprocess
 import sys
+import numpy as np
+import re
 from collections import defaultdict
 from itertools import chain
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 
 from Bio.Alphabet import IUPAC
 from Bio.Seq import Seq
@@ -24,7 +27,6 @@ class Bowtie2Error(Exception):
     pass
 
 
-# def mfold(falist, ct, na_conc, type="DNA"):
 def mfold(falist, ct, na_conc, detG):
     """
     calling the mfold and check the second structure
@@ -76,6 +78,52 @@ def mfold(falist, ct, na_conc, detG):
             return False
 
 
+def LDA(line_list, temp):
+    """
+
+    :param line_list: list of SAM object
+    :param temp: temperature
+    :return:
+    """
+    temp_list = [32, 37, 42, 47, 52, 57]
+    coef_list = [[[-0.14494789, 0.18791679, 0.02588474]],
+                 [[-0.13364364, 0.22510179, 0.05494031]],
+                 [[-0.09006122, 0.25660706, 0.1078303]],
+                 [[-0.01593182, 0.24498485, 0.15753649]],
+                 [[0.01860365, 0.1750174, 0.17003374]],
+                 [[0.03236755, 0.11624593, 0.24306498]]]
+    inter_list = [-1.17545204, -5.40436344, -12.45549846,
+                  -19.32670233, -20.11992898, -23.98652919]
+    class_list = [-1, 1]
+    try:
+        classfier_index = temp_list.index(temp)
+    except ValueError:
+        print("The given temperature was not in temp_list:", temp_list)
+        sys.exit()
+
+    coef_array = np.asarray(coef_list)
+    inter_array = np.asarray(inter_list)
+    class_array = np.asarray(class_list)
+
+    lda_classifer = LinearDiscriminantAnalysis()
+
+    lda_classifer.coef_ = coef_array[classfier_index]
+    lda_classifer.intercept_ = inter_array[classfier_index]
+    lda_classifer.classes_ = class_array
+
+    test_list = []
+    for sub_line in line_list:
+        if sub_line.xs_tag:
+            test_list.append([np.float(len(sub_line)), sub_line.xs_tag, sub_line.gc_content])
+        else:
+            return False
+    lda_prob = lda_classifer.predict_proba(np.asarray(test_list))[:, 1]
+    lda_prob = map(lambda x: x < 0.5, lda_prob)
+    if all(lda_prob):
+        return True
+    return False
+
+
 def wrapperprocess(args):
     """
 
@@ -85,19 +133,19 @@ def wrapperprocess(args):
     return mfold(*args)
 
 
-class SAM():
+class SAM:
     """
     Process the every mapped information
     """
 
     def __init__(self, line, sal, form):
-        # f_ means fake, for exampel, f_chr -> fake chromsome id
         self.info = line  # contain all information
         self.f_chr, self.flag, self.geneinfo, self.abs_start, self.abs_end, self.cigar = line.split('\t')[:6]
         self.seq = line.split('\t')[9]
         self.sal = int(sal)
         self.form = form
         self.Tm = self.__probeTm()
+        self.xs_tag = self.__search_xs()
         if not self.mapped:
             self.geneid, self.genesymbol, self.location = ["nogeneid", "nogenesymbol", "0:0:0:1"]
         else:
@@ -114,7 +162,19 @@ class SAM():
     def PLP(self):
         left, right = self.f_chr.split(';')[1:]
 
-        return (self.proRC[:int(left)], self.proRC[int(left):])
+        return self.proRC[:int(left)], self.proRC[int(left):]
+
+    @property
+    def gc_content(self):
+        """
+        calculate the gc content
+        https://github.com/biopython/biopython/blob/abb2d15584ae47e8048e405b7ff93e94d750212a/Bio/SeqUtils/__init__.py#L27
+        """
+        gc = sum(self.seq.count(x) for x in ["G", "C", "g", "c", "S", "s"])
+        try:
+            return gc * 100.0 / len(sequence)
+        except ZeroDivisionError:
+            return 0.0
 
     @property
     def mapped(self):
@@ -129,6 +189,18 @@ class SAM():
     @property
     def internal_end(self):
         return self.location.split(":")[2]
+
+    def __len__(self):
+        return len(self.seq)
+
+    def __search_xs(self):
+
+        xs_tag = re.findall(r"XS:i:(\d*)", self.line)
+
+        if xs_tag and len(xs_tag) == 1:
+            return np.float(xs_tag[0])
+
+        return None
 
     def __probeTm(self):
         """
@@ -167,7 +239,7 @@ def locationfilter(fake_chrname):
         return False
 
 
-class JuncParser():
+class JuncParser:
 
     def __init__(self,
                  fa,
@@ -201,7 +273,6 @@ class JuncParser():
         self.cDNA = cDNA
         self.samresult = BlockParser.processAlign(self.index, self.fa, self.sal, self.formamide)
         self.filter = self.__filter()
-
 
         pool = multiprocessing.Pool(processes=thread)
         results = []
@@ -265,8 +336,8 @@ class JuncParser():
 
             if locationfilter(fakechrom):
                 for location, samlines in internalinfo.items():
-                    for samline in samlines:
-                        if samline.internal_start <= self.st and samline.internal_end >= self.ed:
+                    for line in samlines:
+                        if line.internal_start <= self.st and line.internal_end >= self.ed:
                             continue
                             # result.append(line)
                         else:
@@ -274,10 +345,12 @@ class JuncParser():
                                 chrom, start, stop, seq, Tm, revseq = line.f_chr, line.abs_start, line.abs_end, line.seq, line.Tm, \
                                                                       line.proRC
                                 left, right = line.PLP
-                                plpseq = generateprobe(left, right, self._probelength, probeseqinfo, self._prefix, self.cDNA)
+                                plpseq = generateprobe(left, right, self._probelength, probeseqinfo, self._prefix,
+                                                       self.cDNA)
 
                                 result.append(
-                                    (chrom, self.motif, "yes" if self.motif in SJMOTIF else "no", left, right, revseq, seq,
+                                    (chrom, self.motif, "yes" if self.motif in SJMOTIF else "no", left, right, revseq,
+                                     seq,
                                      plpseq, Tm, '1', line.geneinfo))
                             else:
                                 continue
@@ -286,12 +359,13 @@ class JuncParser():
         return result
 
 
-class BlockParser():
+class BlockParser:
     """
     BlockParser, execute the bowtie2 command and filter every mapped information on the air
     """
 
-    def __init__(self, fa, index, tagetfile, outfile, sal, formamide, probelength, hytemp, thread, detG, cDNA, mfold_=False,
+    def __init__(self, fa, index, tagetfile, outfile, sal, formamide, probelength, hytemp, thread, detG, cDNA,
+                 mfold_=False,
                  verbose=False):
         self.fa = fa
         self._prefix = os.path.splitext(os.path.split(self.fa)[1])[0]
@@ -460,10 +534,13 @@ class BlockParser():
                 else:
                     continue
             else:
+
                 if genesymbol in set(referkeys):
                     linelist = list(chain(*[v for k, v in genesymbol_ref.items() if k != genesymbol]))
                     passstatus, reslist = BlockParser.process_revline_multihostgene(linelist)
-                    if passstatus:
+                    lda_status = LDA(linelist)
+
+                    if passstatus and lda_status:
                         line_ = genesymbol_ref[genesymbol]
                         transcriptid = list(BlockParser.process_revline(line_)) + list(reslist)
                         chrom, seq, Tm, revseq = line_[0].f_chr, line_[0].seq, line_[0].Tm, \
@@ -473,8 +550,10 @@ class BlockParser():
 
                         result.append(
                             (chrom, left, right, revseq, seq, plpseq, Tm, str(len(transcriptid)),
-                             ','.join(transcriptid), additional)
+                             ','.join(transcriptid), additional, "passstatus" if passstatus else "lda_status")
                         )
+                    else:
+                        pass
                 else:
                     continue
         return result
@@ -525,7 +604,9 @@ def generateprobe(left, right, probelength, configinfo, hostname, cDNA, gcconten
     # leftseq = ''.join([random.choice(['A', 'T', 'C', 'G']) for i in range(leftrandom)])
     # rightseq = ''.join([random.choice(['A', 'T', 'C', 'G']) for i in range(rightrandom)])
     if cDNA:
-        return "".join([str(Seq(left, IUPAC.unambiguous_dna).reverse_complement()), leftseq, firbc, secbc, thirdbc, rightseq, str(Seq(right, IUPAC.unambiguous_dna).reverse_complement())])
+        return "".join(
+            [str(Seq(left, IUPAC.unambiguous_dna).reverse_complement()), leftseq, firbc, secbc, thirdbc, rightseq,
+             str(Seq(right, IUPAC.unambiguous_dna).reverse_complement())])
     else:
         return "".join([right, leftseq, firbc, secbc, thirdbc, rightseq, left])
 
