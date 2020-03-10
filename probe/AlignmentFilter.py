@@ -538,7 +538,7 @@ class BlockParser:
                 if genesymbol in set(referkeys):
                     linelist = list(chain(*[v for k, v in genesymbol_ref.items() if k != genesymbol]))
                     passstatus, reslist = BlockParser.process_revline_multihostgene(linelist)
-                    lda_status = LDA(linelist)
+                    lda_status = LDA(linelist, self.hytemp)
 
                     if passstatus and lda_status:
                         line_ = genesymbol_ref[genesymbol]
