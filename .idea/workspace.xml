@@ -2,11 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="462297f5-3b15-4ad3-8475-da4a94ceefe8" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/probe.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/probe.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/probe/AlignmentFilter.py" beforeDir="false" afterPath="$PROJECT_DIR$/probe/AlignmentFilter.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/probe/command_parser.py" beforeDir="false" afterPath="$PROJECT_DIR$/probe/command_parser.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -51,7 +48,7 @@
       <workItem from="1578035982082" duration="742000" />
       <workItem from="1583241912455" duration="77000" />
       <workItem from="1583302657984" duration="3964000" />
-      <workItem from="1583831176901" duration="7144000" />
+      <workItem from="1583831176901" duration="7827000" />
     </task>
     <servers />
   </component>

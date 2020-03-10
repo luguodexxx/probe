@@ -195,7 +195,7 @@ class SAM:
 
     def __search_xs(self):
 
-        xs_tag = re.findall(r"XS:i:(\d*)", self.line)
+        xs_tag = re.findall(r"XS:i:(\d*)", self.info)
 
         if xs_tag and len(xs_tag) == 1:
             return np.float(xs_tag[0])
@@ -474,7 +474,7 @@ class BlockParser:
             raise FileNotFoundError('bowtie2 were not found! please install bowtie2')
 
         bowtie2 = 'bowtie2'
-        params = '--no-hd -t -k 100 --very-sensitive --end-to-end'
+        params = '--no-hd -t -k 100 --very-sensitive-local'
         # params = '--no-hd -t -k 10 --local -D 20 -R 3 -N 1 -L 20 -i C,4 --score-min G,1,4 --end-to-end'
         bowtie2comm = [
             bowtie2,
