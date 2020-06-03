@@ -14,19 +14,21 @@ ProbeDesign, a simple command line to generate probe. It's  ~~still not~~  compl
 
 
 ### INSTALL
+
 python >= 3.6
 ```shell
 python setup.py install
 ```
+
 ### UASGE
-There are two function.
+There are three function.
 
 #### transcript
 
 Generate the probe based on the transcript ID.
 
 ```shell
-probedesign transcripts -index TranscriptIndex -ta example/test.id
+probedesign transcripts -faC cDNAFastaFile -config config.py
 ```
 
 #### junction
@@ -34,7 +36,7 @@ probedesign transcripts -index TranscriptIndex -ta example/test.id
 Generate the probe based on the junction information.
 
 ```shell
-probedesign junction -faG GenomeFastaFile -ta example/test.junction -index GenomeIndex.bowtie2
+probedesign junction -faG GenomeFastaFile -config config.py
 ```
 
 #### circ
@@ -42,7 +44,7 @@ probedesign junction -faG GenomeFastaFile -ta example/test.junction -index Genom
 Generate the probe based on the circ-junction information.
 
 ```shell
-probedesign circ -faG GenomeFastaFile -ta example/test.circRNA -index GenomeIndex.bowtie2
+probedesign circ -faG GenomeFastaFile -config config.py
 ```
 
 
