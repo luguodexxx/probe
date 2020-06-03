@@ -26,7 +26,7 @@ class IndexRecord(
         return self.chrlength
 
 
-class Fasta(object):
+class Fasta:
     """
     A class return the Fasta object
     """
@@ -102,7 +102,7 @@ class Fasta(object):
         return "\n".join(['>{}'.format(self.name), seq])
 
 
-class Faidx(object):
+class Faidx:
 
     def __init__(self, filename):
         self._filename = filename
@@ -268,6 +268,7 @@ def complement(seq):
 def wrapperseq(seq, length=60):
     """
     wrapper a sequence for beauty
+    :param length:
     :param seq:
     :return:
     """
@@ -280,10 +281,9 @@ def wrapperseq(seq, length=60):
 
 
 def main(file):
-    test = Faidx(file)  # /Volumes/bu15191450186/zr/singlecell/10X/refdata-cellranger-mm10-2.1.0/fasta/genome.fa
-    seq = test.fetch('2', 25466732,25466832, "+")
+    test = Faidx(file)
+    seq = test.fetch('2', 25466732, 25466832, "+")
     print(seq)
-    # print(seq.complement.reverse)2:25466732-25466832
 
 
 if __name__ == '__main__':

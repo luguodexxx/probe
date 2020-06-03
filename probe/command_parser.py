@@ -45,6 +45,10 @@ def transcript(args):
     thread = args.thread
     detG = args.detG
     cDNA = args.cDNA
+    vargibbs = args.vargibbs
+    par = args.par
+    saltscheme = args.saltscheme
+    ct = args.ct
 
     if args.dnac1 >= args.dnac2:
         conc1 = args.dnac1
@@ -59,7 +63,8 @@ def transcript(args):
     for sub in falist:
         subprefix = os.path.splitext(sub)[0]
         runSequenceCrawler(sub, l, L, gcPercent, GCPercent, nn_table, tm, TM, X, sal, form, sp, conc1, conc2,
-                           OverlapModeVal, subprefix, entropy)
+                           OverlapModeVal, subprefix, entropy, vargibbs, par, saltscheme, ct)
+
         BlockParser('.'.join([subprefix, 'fastq']), index, '.'.join([outputprefix, 'layerinfo.txt']),
                     '.'.join([subprefix, 'result']), sal, form, probelength, hytemp, thread, detG, cDNA, mfold_=mfold,
                     verbose=verbocity)
@@ -90,6 +95,10 @@ def junction(args):
     mfold = args.mfold
     detG = args.detG
     cDNA = args.cDNA
+    vargibbs = args.vargibbs
+    par = args.par
+    saltscheme = args.saltscheme
+    ct = args.ct
 
     if args.dnac1 >= args.dnac2:
         conc1 = args.dnac1
@@ -104,7 +113,7 @@ def junction(args):
     for sub in falist:
         subprefix = os.path.splitext(sub)[0]
         runSequenceCrawler(sub, l, L, gcPercent, GCPercent, nn_table, tm, TM, X, sal, form, sp, conc1, conc2,
-                           OverlapModeVal, subprefix, entropy)
+                           OverlapModeVal, subprefix, entropy,vargibbs, par, saltscheme, ct)
 
         JuncParser('.'.join([subprefix, 'fastq']), index, os.path.join(outputprefix, 'config.txt'),
                    '.'.join([subprefix, 'result']), sal, form, probelength, hytemp, thread, detG, cDNA, mfold_=mfold,
@@ -135,6 +144,10 @@ def circ(args):
     mfold = args.mfold
     detG = args.detG
     cDNA = args.cDNA
+    vargibbs = args.vargibbs
+    par = args.par
+    saltscheme = args.saltscheme
+    ct = args.ct
 
     if args.dnac1 >= args.dnac2:
         conc1 = args.dnac1
@@ -149,7 +162,7 @@ def circ(args):
     for sub in falist:
         subprefix = os.path.splitext(sub)[0]
         runSequenceCrawler(sub, l, L, gcPercent, GCPercent, nn_table, tm, TM, X, sal, form, sp, conc1, conc2,
-                           OverlapModeVal, subprefix, entropy)
+                           OverlapModeVal, subprefix, entropy, vargibbs, par, saltscheme, ct)
 
         JuncParser('.'.join([subprefix, 'fastq']), index, os.path.join(outputprefix, 'config.txt'),
                    '.'.join([subprefix, 'result']), sal, form, probelength, hytemp, thread, detG, cDNA, mfold_=mfold,
@@ -192,12 +205,12 @@ __________              ___.          ________                .__
                              type=int,
                              help='The maximum allowed percent  G + C, default '
                                   'is 80')
-    probedesign.add_argument('-t', '--min_Tm', action='store', default=42,
+    probedesign.add_argument('-t', '--min_Tm', action='store', default=54,
                              type=int,
-                             help='The minimum allowed Tm, default is 42')
-    probedesign.add_argument('-T', '--max_Tm', action='store', default=47,
+                             help='The minimum allowed Tm, default is 54')
+    probedesign.add_argument('-T', '--max_Tm', action='store', default=60,
                              type=int,
-                             help='The maximum allowed Tm, default is 47')
+                             help='The maximum allowed Tm, default is 60')
     probedesign.add_argument('-X', '--prohibitedSeqs', action='store',
                              default='AAAAA,TTTTT,CCCCC,GGGGG', type=str,
                              help='Prohibited sequence list (separated by commas '
@@ -266,6 +279,14 @@ __________              ___.          ________                .__
                              help='bowtie2 parameters')
     probedesign.add_argument('-cD', '--cDNA', action='store_true', default=False,
                              help='cDNA mode, if true, padlock probes will be hybridized to cDNA instead of RNA')
+    probedesign.add_argument('--vargibbs', action='store', type=str,
+                             help='vargibbs location')
+    probedesign.add_argument('--par', action='store', type=str,
+                             help='vargibbs par file')
+    probedesign.add_argument('--saltscheme', action='store', type=str,
+                             help='saltscheme')
+    probedesign.add_argument('--ct', action='store',type=float,default=0.3,
+                             help='ct value')
 
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                      description=textwrap.dedent("""

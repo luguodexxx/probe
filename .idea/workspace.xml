@@ -4,6 +4,10 @@
     <list default="true" id="462297f5-3b15-4ad3-8475-da4a94ceefe8" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/probe/AlignmentFilter.py" beforeDir="false" afterPath="$PROJECT_DIR$/probe/AlignmentFilter.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/probe/Faidx.py" beforeDir="false" afterPath="$PROJECT_DIR$/probe/Faidx.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/probe/GenerateBlock.py" beforeDir="false" afterPath="$PROJECT_DIR$/probe/GenerateBlock.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/probe/command_parser.py" beforeDir="false" afterPath="$PROJECT_DIR$/probe/command_parser.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -17,6 +21,11 @@
   <component name="ProjectId" id="1Vs2bqNEMGDkepCCN0AbL0c1Hct" />
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="true" />
+    <property name="WebServerToolWindowPanel.toolwindow.highlight.mappings" value="true" />
+    <property name="WebServerToolWindowPanel.toolwindow.highlight.symlinks" value="true" />
+    <property name="WebServerToolWindowPanel.toolwindow.show.date" value="false" />
+    <property name="WebServerToolWindowPanel.toolwindow.show.permissions" value="false" />
+    <property name="WebServerToolWindowPanel.toolwindow.show.size" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
@@ -48,7 +57,11 @@
       <workItem from="1578035982082" duration="742000" />
       <workItem from="1583241912455" duration="77000" />
       <workItem from="1583302657984" duration="3964000" />
-      <workItem from="1583831176901" duration="8343000" />
+      <workItem from="1583831176901" duration="8993000" />
+      <workItem from="1583889678114" duration="567000" />
+      <workItem from="1584500372236" duration="652000" />
+      <workItem from="1584966682077" duration="11000" />
+      <workItem from="1591167446228" duration="8081000" />
     </task>
     <servers />
   </component>
@@ -67,5 +80,16 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/probe/GenerateBlock.py</url>
+          <line>5</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

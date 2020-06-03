@@ -1,0 +1,29 @@
+target: list.txt
+outprefix: BM
+index: /mnt/data8/zhaoyuancun/GRCm38/GRCm38_idx
+minLength: 36
+maxLength: 41
+min_GC: 20
+max_GC: 80
+min_Tm: 54
+max_Tm: 60
+prohibitedSeqs: AAAAA,TTTTT,CCCCC,GGGGG
+salt: 390
+formamide: 50
+dnac1: 25
+dnac2: 25
+Spacing: 0
+nn_table: DNA_NN3
+OverlapMode: False
+verbose: False
+probelength: 70
+entropy: 1.0
+hytemp: 37.0
+mfold: False
+detG: 0.0
+thread: 4
+bw_param
+cDNA: False
+vargibbs
+par
+saltschem

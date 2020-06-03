@@ -38,6 +38,7 @@ def mfold(falist, ct, na_conc, detG):
     """
     # falist, ct, na_conc = args
     faprefix, left, right = falist[0].split(';')
+    # TODO, add calculate new Tm filter.
 
     with open(faprefix + '.fa', 'w') as Fa:
         Fa.write(">{}\n{}".format(falist[0], falist[5]))

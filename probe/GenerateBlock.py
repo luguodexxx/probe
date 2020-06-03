@@ -7,6 +7,7 @@ import argparse
 import math
 import re
 import timeit
+import subprocess
 from math import log
 from Bio import SeqIO
 from Bio.Alphabet import IUPAC
@@ -14,13 +15,34 @@ from Bio.Seq import Seq
 from Bio.SeqUtils import MeltingTemp as mt
 
 from .helper import set_logging
+from .Faidx import complement
 
 LOG = set_logging("GenerateBlock")
 
 
 class SequenceCrawler:
-    def __init__(self, inputFile, l, L, gcPercent, GCPercent, nn_table, tm, TM,
-                 X, sal, form, sp, conc1, conc2, OverlapModeVal, outNameVal, entropy):
+    def __init__(self,
+                 inputFile,
+                 l,
+                 L,
+                 gcPercent,
+                 GCPercent,
+                 nn_table,
+                 tm,
+                 TM,
+                 X,
+                 sal,
+                 form,
+                 sp,
+                 conc1,
+                 conc2,
+                 OverlapModeVal,
+                 outNameVal,
+                 entropy,
+                 vargibbs,
+                 par,
+                 saltscheme,
+                 ct):
         """Initializes a SequenceCrawler, which is used to efficiently scan a
         large sequence for satisfactory probe sequences."""
 
@@ -40,7 +62,10 @@ class SequenceCrawler:
         self.conc2 = conc2
         self.OverlapModeVal = OverlapModeVal
         self.outNameVal = outNameVal
-
+        self.vargibbs = vargibbs
+        self.par = par
+        self.saltscheme=saltscheme
+        self.ct=ct
         # Build the variables required for efficient melting temperature
         # checking. For melting temperature calculations, the nearest neighbor
         # values are stored as the algorithm crawls along a sequence to improve
@@ -91,29 +116,25 @@ class SequenceCrawler:
         sequence. These are based on the 'init_X/Y' values stored in the
         nearest neighbor table."""
         if letter == 'G' or letter == 'C':
-            return (self.stackTable['init_G/C'][self.dH], \
+            return (self.stackTable['init_G/C'][self.dH],
                     self.stackTable['init_G/C'][self.dS])
         elif letter == 'A':
-            return (self.stackTable['init_A/T'][self.dH], \
+            return (self.stackTable['init_A/T'][self.dH],
                     self.stackTable['init_A/T'][self.dS])
-        return (self.stackTable['init_A/T'][self.dH] \
-                + self.stackTable['init_5T/A'][self.dH], \
-                self.stackTable['init_A/T'][self.dS] \
-                + self.stackTable['init_5T/A'][self.dS])
+        return (self.stackTable['init_A/T'][self.dH] + self.stackTable['init_5T/A'][self.dH],
+                self.stackTable['init_A/T'][self.dS] + self.stackTable['init_5T/A'][self.dS])
 
     def getBackVals(self, letter):
         """Get the energetic contributions based on the end of the sequence."""
 
         if letter == 'G' or letter == 'C':
-            return (self.stackTable['init_G/C'][self.dH], \
+            return (self.stackTable['init_G/C'][self.dH],
                     self.stackTable['init_G/C'][self.dS])
         elif letter == 'T':
-            return (self.stackTable['init_A/T'][self.dH], \
+            return (self.stackTable['init_A/T'][self.dH],
                     self.stackTable['init_A/T'][self.dS])
-        return (self.stackTable['init_A/T'][self.dH] \
-                + self.stackTable['init_5T/A'][self.dH], \
-                self.stackTable['init_A/T'][self.dS] \
-                + self.stackTable['init_5T/A'][self.dS])
+        return (self.stackTable['init_A/T'][self.dH] + self.stackTable['init_5T/A'][self.dH],
+                self.stackTable['init_A/T'][self.dS] + self.stackTable['init_5T/A'][self.dS])
 
     def resetTmVals(self, startInd, startLen):
         """Update the Tm calculation variables, by repopulating the queue. This
@@ -180,118 +201,150 @@ class SequenceCrawler:
             self.currdS += self.stackTable['init_allA/T'][self.dS]
             self.noGC = True
 
-    def probeTmOpt(self, seq1, ind, i, j):
-        """Calculate the melting temperature more efficiently, by not
-        recomputing stack sums for every possible oligo. This method is based
-        on the Tm_NN function in the Bio.SeqUtils.MeltingTemp library. Logic
-        for mismatches and other unnecessary parts have been stripped. This
-        algorithm uses a sliding window strategy to keep track of deltaH and
-        deltaS contributions, as well as values based on GC content and the
-        identities of the bases on the edges of strands."""
+    # def probeTmOpt(self, seq1, ind, i, j):
+    #     """Calculate the melting temperature more efficiently, by not
+    #     recomputing stack sums for every possible oligo. This method is based
+    #     on the Tm_NN function in the Bio.SeqUtils.MeltingTemp library. Logic
+    #     for mismatches and other unnecessary parts have been stripped. This
+    #     algorithm uses a sliding window strategy to keep track of deltaH and
+    #     deltaS contributions, as well as values based on GC content and the
+    #     identities of the bases on the edges of strands."""
+    #
+    #     # If we are just looking at a longer sequence, this will extend the
+    #     # considered energy window.
+    #     if ind == self.currInd and self.currLen != len(seq1):
+    #         # Subtract the value for the previous end
+    #         # Add the new base stacks
+    #         # Add new end value
+    #         (newBackH, newBackS) = self.getBackVals(seq1[-1])
+    #         self.currdH = self.currdH - self.backH + newBackH
+    #         self.currdS = self.currdS - self.backS + newBackS
+    #         (self.backH, self.backS) = (newBackH, newBackS)
+    #         diffGC = 0
+    #         for j in range(self.currLen - 1, len(seq1) - 1):
+    #             self.currdH += self.hQueue[(self.queueInd + j) % self.L]
+    #             self.currdS += self.sQueue[(self.queueInd + j) % self.L]
+    #             if seq1[j] in 'GCgc':
+    #                 diffGC += 1
+    #         if seq1[self.currLen - 1] in 'GCgc':
+    #             diffGC -= 1
+    #         if seq1[-1] in 'GCgc':
+    #             diffGC += 1
+    #         self.computeGCDiffs(diffGC)
+    #
+    #         self.currLen = len(seq1)
+    #
+    #     # If we jumped the window forward too far, all Tm values get reset.
+    #     elif ind - self.currInd >= self.L - self.l \
+    #             or self.currLen < len(seq1) + (ind - self.currInd):
+    #         self.resetTmVals(ind, len(seq1))
+    #
+    #     # Here, we have moved forward and need to shorten the front and back.
+    #     elif self.currLen > len(seq1):
+    #         # Subtract the value for the previous start and end.
+    #         # Subtract the first base stack(s) and last base stack(s).
+    #         # Add new start and end values.
+    #         (newFrontH, newFrontS) = self.getFrontVals(seq1[0])
+    #         (newBackH, newBackS) = self.getBackVals(seq1[-1])
+    #         self.currdH = self.currdH - self.backH + newBackH - self.frontH + newFrontH
+    #         self.currdS = self.currdS - self.backS + newBackS - self.frontS + newFrontS
+    #         (self.frontH, self.frontS) = (newFrontH, newFrontS)
+    #         (self.backH, self.backS) = (newBackH, newBackS)
+    #
+    #         diffGC = 0
+    #         # Subtract from front.
+    #         for j in range(ind - self.currInd):
+    #             self.currdH -= self.hQueue[(self.queueInd + j) % self.L]
+    #             self.currdS -= self.sQueue[(self.queueInd + j) % self.L]
+    #             if self.block[ind - 1 - j] in 'GCgc':
+    #                 diffGC -= 1
+    #
+    #         # Subtract from back.
+    #         for j in range(self.currInd + self.currLen - ind - len(seq1)):
+    #             self.currdH -= self.hQueue[(self.queueInd + self.currLen - 2 - j) % self.L]
+    #             self.currdS -= self.sQueue[(self.queueInd + self.currLen - 2 - j) % self.L]
+    #             if self.block[self.currInd + self.currLen - j - 2] in 'GCgc':
+    #                 diffGC -= 1
+    #         if self.block[self.currInd + self.currLen - 1] in 'GCgc':
+    #             diffGC -= 1
+    #
+    #         if seq1[-1] in 'GCgc':
+    #             diffGC += 1
+    #
+    #         self.queueInd = (self.queueInd + ind - self.currInd) % self.L
+    #         for j in range(len(seq1), self.L):
+    #             if ind + j + 1 < len(self.block):
+    #                 neighbors = self.block[ind + j] + self.block[ind + j + 1]
+    #                 if neighbors in self.stackTable:
+    #                     self.hQueue[(self.queueInd + j) % self.L] = \
+    #                         self.stackTable[neighbors][self.dH]
+    #                     self.sQueue[(self.queueInd + j) % self.L] = \
+    #                         self.stackTable[neighbors][self.dS]
+    #
+    #         # Adjust GC content count as necessary.
+    #         self.computeGCDiffs(diffGC)
+    #
+    #         self.currLen = len(seq1)
+    #         self.currInd = ind
+    #
+    #     # Adjust estimate based on salt concentration. Note that this logic
+    #     # corresponds to saltcorr = 5 in the MeltingTemp library.
+    #     concval = (self.conc1 - (self.conc2 / 2.0)) * 1e-9
+    #     saltval = mt.salt_correction(Na=self.sal, K=0, Tris=0, Mg=0, dNTPs=0, method=5, seq=seq1)
+    #     tmval = (1000.0 * self.currdH) / \
+    #             (self.currdS + saltval + (1.987 * math.log(concval))) - 273.15
+    #
+    #     # ! return mt.chem_correction(tmval, fmd=self.form)
+    #     approxtmval = float('%0.2f' % tmval)
+    #     return mt.chem_correction(approxtmval, fmd=self.form)
 
-        # If we are just looking at a longer sequence, this will extend the
-        # considered energy window.
-        if ind == self.currInd and self.currLen != len(seq1):
-            # Subtract the value for the previous end
-            # Add the new base stacks
-            # Add new end value
-            (newBackH, newBackS) = self.getBackVals(seq1[-1])
-            self.currdH = self.currdH - self.backH + newBackH
-            self.currdS = self.currdS - self.backS + newBackS
-            (self.backH, self.backS) = (newBackH, newBackS)
-            diffGC = 0
-            for j in range(self.currLen - 1, len(seq1) - 1):
-                self.currdH += self.hQueue[(self.queueInd + j) % self.L]
-                self.currdS += self.sQueue[(self.queueInd + j) % self.L]
-                if seq1[j] in 'GCgc':
-                    diffGC += 1
-            if seq1[self.currLen - 1] in 'GCgc':
-                diffGC -= 1
-            if seq1[-1] in 'GCgc':
-                diffGC += 1
-            self.computeGCDiffs(diffGC)
+    def probeTmOpt(self, seq1):
+        """
+        
+        :param self: 
+        :param seq1: 
+        :return: 
+        """
 
-            self.currLen = len(seq1)
+        vargibbs_res = str(self.inputFile).split('.')[0]
 
-        # If we jumped the window forward too far, all Tm values get reset.
-        elif ind - self.currInd >= self.L - self.l \
-                or self.currLen < len(seq1) + (ind - self.currInd):
-            self.resetTmVals(ind, len(seq1))
+        vargibbs_run = [
+            self.vargibbs,
+            f'-o={vargibbs_res}',
+            f'-par={self.par}',
+            '-calc=prediction',
+            '-v=0',
+            '-seqsalt={}'.format(1000),
+            '\"-seq=r({})\"'.format(seq1),
+            '-cseq={}'.format(complement(seq1)),
+            f'-ct={self.ct}',
+            f'-targetsalt={self.sal}',
+            f'-saltscheme={self.saltscheme}'
+        ]
 
-        # Here, we have moved forward and need to shorten the front and back.
-        elif self.currLen > len(seq1):
-            # Subtract the value for the previous start and end.
-            # Subtract the first base stack(s) and last base stack(s).
-            # Add new start and end values.
-            (newFrontH, newFrontS) = self.getFrontVals(seq1[0])
-            (newBackH, newBackS) = self.getBackVals(seq1[-1])
-            self.currdH = self.currdH - self.backH + newBackH - self.frontH \
-                          + newFrontH
-            self.currdS = self.currdS - self.backS + newBackS - self.frontS \
-                          + newFrontS
-            (self.frontH, self.frontS) = (newFrontH, newFrontS)
-            (self.backH, self.backS) = (newBackH, newBackS)
+        run_func = ' '.join(vargibbs_run)
+        proc = subprocess.Popen(
+            run_func,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
+        )
+        result, err = proc.communicate()
 
-            diffGC = 0
-            # Subtract from front.
-            for j in range(ind - self.currInd):
-                self.currdH -= self.hQueue[(self.queueInd + j) % self.L]
-                self.currdS -= self.sQueue[(self.queueInd + j) % self.L]
-                if self.block[ind - 1 - j] in 'GCgc':
-                    diffGC -= 1
+        try:
+            tm_val = float(open(vargibbs_res + '.ver').read().split('\n')[1].split(' ')[1])
+        except:
+            LOG.warning(err)
+            return False
 
-            # Subtract from back.
-            for j in range(self.currInd + self.currLen - ind - len(seq1)):
-                self.currdH -= self.hQueue[(self.queueInd + self.currLen \
-                                            - 2 - j) % self.L]
-                self.currdS -= self.sQueue[(self.queueInd + self.currLen \
-                                            - 2 - j) % self.L]
-                if self.block[self.currInd + self.currLen - j - 2] in 'GCgc':
-                    diffGC -= 1
-            if self.block[self.currInd + self.currLen - 1] in 'GCgc':
-                diffGC -= 1
+        return tm_val
 
-            if seq1[-1] in 'GCgc':
-                diffGC += 1
-
-            self.queueInd = (self.queueInd + ind - self.currInd) % self.L
-            for j in range(len(seq1), self.L):
-                if ind + j + 1 < len(self.block):
-                    neighbors = self.block[ind + j] + self.block[ind + j + 1]
-                    if neighbors in self.stackTable:
-                        self.hQueue[(self.queueInd + j) % self.L] = \
-                            self.stackTable[neighbors][self.dH]
-                        self.sQueue[(self.queueInd + j) % self.L] = \
-                            self.stackTable[neighbors][self.dS]
-
-            # Adjust GC content count as necessary.
-            self.computeGCDiffs(diffGC)
-
-            self.currLen = len(seq1)
-            self.currInd = ind
-
-        # Adjust estimate based on salt concentration. Note that this logic
-        # corresponds to saltcorr = 5 in the MeltingTemp library.
-        concval = (self.conc1 - (self.conc2 / 2.0)) * 1e-9
-        saltval = mt.salt_correction(Na=self.sal, K=0, Tris=0, Mg=0, dNTPs=0, \
-                                     method=5, seq=seq1)
-        tmval = (1000.0 * self.currdH) / \
-                (self.currdS + saltval + (1.987 * math.log(concval))) - 273.15
-
-        # ! return mt.chem_correction(tmval, fmd=self.form)
-        approxtmval = float('%0.2f' % tmval)
-        return mt.chem_correction(approxtmval, fmd=self.form)
-
-    def tmCheck(self, seq2, ind, i, j):
+    def tmCheck(self, seq2,ind, i, j):
         """Check if a candidate sequence has a melting temperature within
         range."""
-        return float(self.tm) < self.probeTmOpt(seq2, ind, i, j) \
-               < float(self.TM)
+        return float(self.tm) < self.probeTmOpt(seq2) < float(self.TM)
 
     def gcCheck(self, seq3):
         """Check whether a candidate sequence has the right GC content."""
-        return float(self.gcPercent) <= self.numGC * 100.0 / len(seq3) \
-               <= float(self.GCPercent)
+        return float(self.gcPercent) <= self.numGC * 100.0 / len(seq3) <= float(self.GCPercent)
 
     def prohibitCheck(self, seq4):
         """Check for prohibited sequence matches."""
@@ -347,8 +400,10 @@ class SequenceCrawler:
         return -1 * sum(ent)
 
     def run(self):
-        """Runs the crawler through the given block sequence to identify probes
-        within the FASTA file satisfying the given constraints."""
+        """
+        Runs the crawler through the given block sequence to identify probes
+        within the FASTA file satisfying the given constraints.
+        """
 
         # Parse out FASTA coordinate, scaffold info.
         def joinseq(seqinfo, type='fq'):
@@ -472,7 +527,7 @@ class SequenceCrawler:
             outName = self.outNameVal
 
         # Create the output file.
-        output = open('%s.fastq' % outName, 'w')
+        output = open(f'{outName}.fastq', 'w')
 
         # Create a list to hold the output.
         outList = []
@@ -505,12 +560,14 @@ class SequenceCrawler:
 
 
 def runSequenceCrawler(inputFile, l, L, gcPercent, GCPercent, nn_table, tm, TM,
-                       X, sal, form, sp, conc1, conc2, OverlapModeVal, outNameVal, entropy):
+                       X, sal, form, sp, conc1, conc2, OverlapModeVal, outNameVal, entropy,
+                       vargibbs, par, saltscheme, ct):
     """Creates and runs a SequenceCrawler instance."""
 
     sc = SequenceCrawler(inputFile, l, L, gcPercent, GCPercent, nn_table, tm,
                          TM, X, sal, form, sp, conc1, conc2,
-                         OverlapModeVal, outNameVal, entropy)
+                         OverlapModeVal, outNameVal, entropy,
+                         vargibbs, par, saltscheme, ct)
     sc.run()
 
 
