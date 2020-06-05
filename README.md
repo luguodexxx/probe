@@ -50,3 +50,4 @@ probedesign circ -faG GenomeFastaFile -config config.py
 
 ### Reference
 We generate the probe followed the same filter conditions with blockParse.py in [OligoMiner](https://github.com/brianbeliveau/OligoMiner)
+
