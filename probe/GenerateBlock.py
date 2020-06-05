@@ -335,6 +335,7 @@ class SequenceCrawler:
             LOG.warning(err)
             return False
 
+        tm_val = mt.chem_correction(tm_val, fmd=self.form)
         return tm_val
 
     def tmCheck(self, seq2,ind, i, j):
