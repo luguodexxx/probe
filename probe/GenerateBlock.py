@@ -315,7 +315,7 @@ class SequenceCrawler:
             '-calc=prediction',
             '-v=0',
             '-seqsalt={}'.format(1000),
-            '\"-seq=r({})\"'.format(seq1),
+            '\"-seq=r({})\"'.format(seq1.replace('T', 'U')),
             '-cseq={}'.format(complement(seq1)),
             f'-ct={self.ct}',
             f'-targetsalt={self.sal}',
