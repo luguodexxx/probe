@@ -5,7 +5,7 @@ All input file were tab-separate.
 ## transcripts
 
 |ENSEMBL | barcode1 | fluorescence_probe_binding_region | barcode2 | SYMBOL | fluorescence_label|
-| :------: | :------: | :------: | :------: | :------: | :------: |:------: |
+| :------: | :------: | :------: | :------: | :------: | :------: |
 |ENSMUSG00000004891|A|TGTCTATGTTTACAGCGGGC|C|Nes|DO1-G|
 
 
