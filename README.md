@@ -65,7 +65,7 @@ Generate the probe based on the transcript ID.
 
 ```shell
 # python ./scripts/trans_modify.py /path/to/cdna.fa /path/to/cdna.mod.fa
-# bowtie2-bulk /path/to/cdna.mod.fa cDNAFastaFile
+# bowtie2-build /path/to/cdna.mod.fa index_prefix
 
 probedesign transcripts -faC cDNAFastaFile -config config.py
 ```
