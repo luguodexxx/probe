@@ -49,11 +49,14 @@ export PATH="/path/to/save/bin:$PATH"
 [VarGibbs-2.2](http://bioinf.fisica.ufmg.br/software/vargibbs-2.2/)
 
 ### UASGE
-There are three function.
 
-#### transcript
+There are three function, and the inputfile of [transcripts](https://github.com/zhou-ran/probe/blob/master/example/test.id), [circ](https://github.com/zhou-ran/probe/blob/master/example/test.circRNA) and [junction](https://github.com/zhou-ran/probe/blob/master/example/test.junction) was deposited in example.
+
+
+#### transcripts
 
 Generate the probe based on the transcript ID.
+
 
 ```shell
 # python ./scripts/trans_modify.py /path/to/cdna.fa /path/to/cdna.mod.fa
@@ -66,11 +69,14 @@ probedesign transcripts -faC cDNAFastaFile -config config.py
 
 Generate the probe based on the junction information.
 
+
+
 ```shell
 probedesign junction -faG GenomeFastaFile -config config.py
 ```
 
 #### circ
+
 
 Generate the probe based on the circ-junction information.
 
