@@ -15,9 +15,35 @@ ProbeDesign, a simple command line to generate probe. It's  ~~still not~~  compl
 
 ### INSTALL
 
+#### package install
+
 python >= 3.6
 ```shell
+git clone https://github.com/zhou-ran/probe
 python setup.py install
+```
+
+#### third-party software
+
+bowtie2
+
+```shell
+conda install bowtie2 -y
+
+```
+
+mfold
+```shell
+
+wget http://unafold.rna.albany.edu/download/mfold-3.6.tar.gz 
+tar -xvf mfold-3.6.tar.gz
+cd mfold-3.6
+./configure --prefix=/path/to/save
+make && make install
+chmod 755 mfold
+export PATH="/path/to/save/bin:$PATH"
+
+# then add mfold to your env
 ```
 
 ### UASGE
@@ -28,6 +54,9 @@ There are three function.
 Generate the probe based on the transcript ID.
 
 ```shell
+# python ./scripts/trans_modify.py /path/to/cdna.fa /path/to/cdna.mod.fa
+# bowtie2-bulk /path/to/cdna.mod.fa cDNAFastaFile
+
 probedesign transcripts -faC cDNAFastaFile -config config.py
 ```
 

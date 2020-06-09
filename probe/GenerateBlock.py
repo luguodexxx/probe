@@ -372,8 +372,10 @@ class SequenceCrawler:
         # Next check Tm, % G+C
         # NOTE: Because of the variable setup, the tmCheck MUST come before the
         # gcCheck for this to work properly.
-        if self.Ncheckopt(seq5) == -1 and self.prohibitCheck(seq5) \
-                and self.tmCheck(seq5, ind, i, j) and self.gcCheck(seq5):
+        # if self.Ncheckopt(seq5) == -1 and self.prohibitCheck(seq5) \
+        #         and self.tmCheck(seq5, ind, i, j) and self.gcCheck(seq5):
+        if self.Ncheckopt(seq5) == -1 and self.prohibitCheck(seq5)  and self.gcCheck(seq5):
+
             return True
 
     def BedprobeTm(self, seq7):
@@ -538,7 +540,8 @@ class SequenceCrawler:
 
         # Build the output file.
         for i, (start, end, seq) in enumerate(cands):
-            if SequenceCrawler.entropy(seq) <= self.entropy: continue
+            if SequenceCrawler.entropy(seq) <= self.entropy:
+                continue
             outList.append((chrom, start, end, seq, quals[i]))
 
             # outList2 = sorted(outList2,key = lambda x:(int(x[1]),int(x[2])))
