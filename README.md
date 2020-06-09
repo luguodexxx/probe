@@ -39,11 +39,16 @@ wget http://unafold.rna.albany.edu/download/mfold-3.6.tar.gz
 tar -xvf mfold-3.6.tar.gz
 cd mfold-3.6
 ./configure --prefix=/path/to/save
+#Modify /path/to/save/mfold-3.6/src/newtemp.f
+## change all '/usr/local/share/mfold/ ' to '/path/to/save/mfold-3.6/share/mfold/'
+#Install
 make && make install
-chmod 755 mfold
+#Modify /path/to/save/mfold-3.6/bin/mflod
+## Delete the 404-651 lines of code and generate new files '/path/to/save/mfold-3.6/bin/mflod_mod'
+chmod 775 mfold_mod 
 export PATH="/path/to/save/bin:$PATH"
-
 # then add mfold to your env
+
 ```
 
 [VarGibbs-2.2](http://bioinf.fisica.ufmg.br/software/vargibbs-2.2/)

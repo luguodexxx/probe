@@ -10,11 +10,11 @@ All input file were tab-separate.
 
 
 ## junction
-|ENSEMBL | barcode1 | fluorescence_probe_binding_region |
+|AlternativeSplice | barcode1;fluorescence_probe_binding_region;barcode2 | barcode1;fluorescence_probe_binding_region;barcode2 |
 | :------: | :------: | :------: |
 |1:4886832-4889456+_1:4886832-4889459+|T;CAGTGAATGCGAGTCCGTCT;G|T;CAGTGAATGCGAGTCCGTCT;G|
 
 ## circRNA
-|ENSEMBL | barcode1 | fluorescence_probe_binding_region | |
+|BackSplice | barcode1 | fluorescence_probe_binding_region | barcode2|
 | :------: | :------: | :------: |:------: |
 |1:10058824-10059823+|T|CAGTGAATGCGAGTCCGTCT|G|
