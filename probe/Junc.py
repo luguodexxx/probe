@@ -95,8 +95,8 @@ class Junction:
                                rev_strand(strand))
 
             seq2 = faidx.fetch(chr,
-                               int(ed) - offset,
-                               int(ed) + 39 - offset,
+                               int(ed) - offset + 1,
+                               int(ed) + 39 - offset + 1,
                                rev_strand(strand))
 
         if strand == "+":
