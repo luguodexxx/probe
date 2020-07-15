@@ -6,12 +6,13 @@ import os
 import re
 import argparse
 from collections import defaultdict
-from .Faidx import Faidx
-from .helper import set_logging
+from Faidx import Faidx
+from helper import set_logging
 
 SJMOTIF = set(["GT@AG", "CT@AC", "GC@AG", "CT@GC", "AT@AC", "GT@AT"])
 
 LOG = set_logging("JunctionFetch")
+
 
 def rev_strand(strand):
     """
@@ -23,6 +24,7 @@ def rev_strand(strand):
         return "-"
     return "+"
 
+
 class Junction:
     """
     A class to process the junction tab. All coordinary site don't need to convert to 0-based
@@ -32,8 +34,8 @@ class Junction:
 
         allinfo = sj.split("_")
         self._name = sj
-        self._info = sj[:-1].split("_")
-        self._strand = allinfo[0][-1]
+        self._info = sj.split("_")
+        self._strand = allinfo[-1][-1]
         self._chrom = allinfo[0].split(":")[0]
         self.circ = circ
         if isinstance(genome, Faidx):
@@ -84,28 +86,28 @@ class Junction:
         if circ:
             seq1 = faidx.fetch(chr,
                                int(st), int(st) + 39,
-                               rev_strand(strand))
+                               strand)
             seq2 = faidx.fetch(chr,
                                int(ed) - 39, int(ed),
-                               rev_strand(strand))
+                               strand)
         else:
             seq1 = faidx.fetch(chr,
                                int(st) - 40 + offset,
                                int(st) - 1 + offset,
-                               rev_strand(strand))
+                               strand)
 
             seq2 = faidx.fetch(chr,
                                int(ed) - offset + 1,
                                int(ed) + 39 - offset + 1,
-                               rev_strand(strand))
+                               strand)
 
         if strand == "+":
-            if not circ:
+            if circ:
                 seq = seq2.realseq + seq1.realseq
             else:
                 seq = seq1.realseq + seq2.realseq
         else:
-            if not circ:
+            if circ:
                 seq = seq1.realseq + seq2.realseq
             else:
                 seq = seq2.realseq + seq1.realseq
@@ -174,8 +176,12 @@ class Junction:
 
             u'''
             8.3 remove last string, that's the strand
+            7.15 remove last strand information
             '''
-            chr_, st, ed = re.split("-|:", j)
+            try:
+                chr_, st, ed = re.split("-|:", j[:-1])
+            except ValueError:
+                raise ValueError("Seems wrong input format, please follow example files")
 
             if not self.circ:
                 motif1, motif2, motif = Junction.junctionmotif(self.genome, chr_, st, ed, self.strand)
@@ -310,11 +316,12 @@ def fetchcirc(genome, junctionfile, outdir):
 
 
 def main():
-    # a = Junction('1:4837075-4839386+_1:4837075-4840955+',
+    # a = Junction('1:4837075-4839386_1:4837075-4840955+',
     #              '/Volumes/bu15191450186/zr/singlecell/10X/refdata-cellranger-mm10-2.1.0/fasta/genome.fa')
+    # fetchjunc('/Volumes/bu15191450186/zr/singlecell/10X/refdata-cellranger-mm10-2.1.0/fasta/genome.fa', '../splicing.txt', './test')
     # for k, v in a.junc_for_seq().items():
     #     print(k, v.seq)
-    args = _parse_args()
+    # args = _parse_args()
     if args.circRNA:
         fetchcirc(args.fasta, args.target, args.outdir)
     else:

@@ -46,12 +46,15 @@ def junction(args):
     falist = fetchjunc(fastaG, targetfile, outputprefix)
     for sub in falist:
         subprefix = os.path.splitext(sub)[0]
+        strand = os.path.split(sub)[0][-1]
         runSequenceCrawler(sub, l, L, gcPercent, GCPercent, nn_table, tm, TM, X, sal, form, sp, conc1, conc2,
-                           OverlapModeVal, subprefix, entropy,vargibbs, par, saltscheme, ct)
+                           OverlapModeVal, subprefix, entropy, vargibbs, par, saltscheme, ct)
 
         JuncParser('.'.join([subprefix, 'fastq']), index, os.path.join(outputprefix, 'config.txt'),
-                   '.'.join([subprefix, 'result']), sal, form, probelength, hytemp, thread, detG, cDNA, mfold_=mfold,
-                   verbose=verbocity)
+                   '.'.join([subprefix, 'result']), sal, form, probelength, hytemp, thread, detG, cDNA,
+                   strand,
+                   mfold_ = mfold,
+                   verbose = verbocity)
 
 
 def circ(args):
@@ -62,11 +65,14 @@ def circ(args):
     falist = fetchcirc(fastaG, targetfile, outputprefix)
     for sub in falist:
         subprefix = os.path.splitext(sub)[0]
+        strand = os.path.split(sub)[0][-1]
         runSequenceCrawler(sub, l, L, gcPercent, GCPercent, nn_table, tm, TM, X, sal, form, sp, conc1, conc2,
                            OverlapModeVal, subprefix, entropy, vargibbs, par, saltscheme, ct)
 
         JuncParser('.'.join([subprefix, 'fastq']), index, os.path.join(outputprefix, 'config.txt'),
-                   '.'.join([subprefix, 'result']), sal, form, probelength, hytemp, thread, detG, cDNA, mfold_=mfold,
+                   '.'.join([subprefix, 'result']), sal, form, probelength, hytemp, thread, detG, cDNA,
+                   strand,
+                   mfold_=mfold,
                    verbose=verbocity)
 
 

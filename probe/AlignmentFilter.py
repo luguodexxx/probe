@@ -254,6 +254,7 @@ class JuncParser:
                  thread,
                  detG,
                  cDNA,
+                 strand,
                  mfold_=False,
                  verbose=False):
         self.fa = fa
@@ -272,6 +273,7 @@ class JuncParser:
         self.mfold = mfold_
         self.detG = detG
         self.cDNA = cDNA
+        self.strand = strand
         self.samresult = BlockParser.processAlign(self.index, self.fa, self.sal, self.formamide)
         self.filter = self.__filter()
 
@@ -343,7 +345,8 @@ class JuncParser:
                             # result.append(line)
                         else:
                             if not line.checkFlag():
-                                chrom, start, stop, seq, Tm, revseq = line.f_chr, line.abs_start, line.abs_end, line.seq, line.Tm, \
+                                chrom, start, stop, seq, Tm, revseq = line.f_chr, line.abs_start, \
+                                                                      line.abs_end, line.seq, line.Tm, \
                                                                       line.proRC
                                 left, right = line.PLP
                                 plpseq = generateprobe(left, right, self._probelength, probeseqinfo, self._prefix,
