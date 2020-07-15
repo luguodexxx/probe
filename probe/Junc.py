@@ -6,8 +6,8 @@ import os
 import re
 import argparse
 from collections import defaultdict
-from Faidx import Faidx
-from helper import set_logging
+from .Faidx import Faidx
+from .helper import set_logging
 
 SJMOTIF = set(["GT@AG", "CT@AC", "GC@AG", "CT@GC", "AT@AC", "GT@AT"])
 
@@ -321,7 +321,7 @@ def main():
     # fetchjunc('/Volumes/bu15191450186/zr/singlecell/10X/refdata-cellranger-mm10-2.1.0/fasta/genome.fa', '../splicing.txt', './test')
     # for k, v in a.junc_for_seq().items():
     #     print(k, v.seq)
-    # args = _parse_args()
+    args = _parse_args()
     if args.circRNA:
         fetchcirc(args.fasta, args.target, args.outdir)
     else:
