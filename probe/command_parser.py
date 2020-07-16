@@ -29,6 +29,13 @@ def transcript(args):
     exec('nn_table = mt.%s' % nn_table, None, globals())
     falist = generateinfo(fasta, targetfile, outputprefix)
     for sub in falist:
+        if dnac1 >= dnac2:
+            conc1 = dnac1
+            conc2 = dnac2
+
+        else:
+            conc1 = dnac2
+            conc2 = dnac1
         subprefix = os.path.splitext(sub)[0]
         runSequenceCrawler(sub, l, L, gcPercent, GCPercent, nn_table, tm, TM, X, sal, form, sp, conc1, conc2,
                            OverlapModeVal, subprefix, entropy, vargibbs, par, saltscheme, ct, run_var=run_var)
@@ -45,6 +52,13 @@ def junction(args):
     exec('nn_table = mt.%s' % nn_table, None, globals())
     falist = fetchjunc(fastaG, targetfile, outputprefix)
     for sub in falist:
+        if dnac1 >= dnac2:
+            conc1 = dnac1
+            conc2 = dnac2
+
+        else:
+            conc1 = dnac2
+            conc2 = dnac1
         subprefix = os.path.splitext(sub)[0]
         strand = os.path.split(sub)[0][-1]
         runSequenceCrawler(sub, l, L, gcPercent, GCPercent, nn_table, tm, TM, X, sal, form, sp, conc1, conc2,
@@ -64,6 +78,13 @@ def circ(args):
 
     falist = fetchcirc(fastaG, targetfile, outputprefix)
     for sub in falist:
+        if dnac1 >= dnac2:
+            conc1 = dnac1
+            conc2 = dnac2
+
+        else:
+            conc1 = dnac2
+            conc2 = dnac1
         subprefix = os.path.splitext(sub)[0]
         strand = os.path.split(sub)[0][-1]
         runSequenceCrawler(sub, l, L, gcPercent, GCPercent, nn_table, tm, TM, X, sal, form, sp, conc1, conc2,
