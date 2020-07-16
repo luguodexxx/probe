@@ -31,7 +31,7 @@ def transcript(args):
     for sub in falist:
         subprefix = os.path.splitext(sub)[0]
         runSequenceCrawler(sub, l, L, gcPercent, GCPercent, nn_table, tm, TM, X, sal, form, sp, conc1, conc2,
-                           OverlapModeVal, subprefix, entropy, vargibbs, par, saltscheme, ct)
+                           OverlapModeVal, subprefix, entropy, vargibbs, par, saltscheme, ct, run_var=run_var)
 
         BlockParser('.'.join([subprefix, 'fastq']), index, '.'.join([outputprefix, 'layerinfo.txt']),
                     '.'.join([subprefix, 'result']), sal, form, probelength, hytemp, thread, detG, cDNA, mfold_=mfold,
@@ -48,7 +48,7 @@ def junction(args):
         subprefix = os.path.splitext(sub)[0]
         strand = os.path.split(sub)[0][-1]
         runSequenceCrawler(sub, l, L, gcPercent, GCPercent, nn_table, tm, TM, X, sal, form, sp, conc1, conc2,
-                           OverlapModeVal, subprefix, entropy, vargibbs, par, saltscheme, ct)
+                           OverlapModeVal, subprefix, entropy, vargibbs, par, saltscheme, ct, run_var=run_var)
 
         JuncParser('.'.join([subprefix, 'fastq']), index, os.path.join(outputprefix, 'config.txt'),
                    '.'.join([subprefix, 'result']), sal, form, probelength, hytemp, thread, detG, cDNA,
@@ -67,7 +67,7 @@ def circ(args):
         subprefix = os.path.splitext(sub)[0]
         strand = os.path.split(sub)[0][-1]
         runSequenceCrawler(sub, l, L, gcPercent, GCPercent, nn_table, tm, TM, X, sal, form, sp, conc1, conc2,
-                           OverlapModeVal, subprefix, entropy, vargibbs, par, saltscheme, ct)
+                           OverlapModeVal, subprefix, entropy, vargibbs, par, saltscheme, ct, run_var=run_var)
 
         JuncParser('.'.join([subprefix, 'fastq']), index, os.path.join(outputprefix, 'config.txt'),
                    '.'.join([subprefix, 'result']), sal, form, probelength, hytemp, thread, detG, cDNA,

@@ -42,6 +42,7 @@ detG = 0.0
 # cDNA mode, if true, padlock probes will be hybridized to cDNA instead of RNA
 cDNA = False
 # vargibbs parameters
+run_var = False
 vargibbs = '/mnt/data8/zhaoyuancun/DNA-RNA_hybrids/VarGibbs-2.2/vargibbs'
 par = '/mnt/data8/zhaoyuancun/DNA-RNA_hybrids/VarGibbs-2.2/data/AOP-DRFT.par'
 saltscheme = 'chen13eq21'

@@ -42,7 +42,8 @@ class SequenceCrawler:
                  vargibbs,
                  par,
                  saltscheme,
-                 ct):
+                 ct,
+                 run_var=False):
         """Initializes a SequenceCrawler, which is used to efficiently scan a
         large sequence for satisfactory probe sequences."""
 
@@ -65,7 +66,8 @@ class SequenceCrawler:
         self.vargibbs = vargibbs
         self.par = par
         self.saltscheme=saltscheme
-        self.ct=ct
+        self.ct = ct
+        self.run_var = run_var
         # Build the variables required for efficient melting temperature
         # checking. For melting temperature calculations, the nearest neighbor
         # values are stored as the algorithm crawls along a sequence to improve
@@ -303,56 +305,58 @@ class SequenceCrawler:
         approxtmval = float('%0.2f' % tmval)
         return mt.chem_correction(approxtmval, fmd=self.form)
 
+    def probeTmOpt_var(self, seq1):
+        """
+
+        :param self:
+        :param seq1:
+        :return:
+        """
+
+        vargibbs_res = str(self.inputFile).split('.')[0]
+
+        vargibbs_run = [
+            self.vargibbs,
+            f'-o={vargibbs_res}',
+            f'-par={self.par}',
+            '-calc=prediction',
+            '-v=0',
+            '-seqsalt={}'.format(1000),
+            '\"-seq=r({})\"'.format(seq1.replace('T', 'U')),
+            '-cseq={}'.format(complement(seq1)),
+            f'-ct={self.ct}',
+            f'-targetsalt={self.sal}',
+            f'-saltscheme={self.saltscheme}'
+        ]
+
+        run_func = ' '.join(vargibbs_run)
+        proc = subprocess.Popen(
+            run_func,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
+        )
+        result, err = proc.communicate()
+
+        try:
+            tm_val = float(open(vargibbs_res + '.ver').read().split('\n')[1].split(' ')[1])
+        except:
+            LOG.warning(err)
+            return False
+
+        tm_val = mt.chem_correction(tm_val, fmd=self.form)
+        return tm_val
+
     def tmCheck(self, seq2, ind, i, j):
         """Check if a candidate sequence has a melting temperature within
         range."""
-        return float(self.tm) < self.probeTmOpt(seq2, ind, i, j) \
-               < float(self.TM)
+        if self.run_var:
+            return float(self.tm) < self.probeTmOpt_var(seq2) < float(self.TM)
 
-    # def probeTmOpt(self, seq1):
-    #     """
-    #
-    #     :param self:
-    #     :param seq1:
-    #     :return:
-    #     """
-    #
-    #     vargibbs_res = str(self.inputFile).split('.')[0]
-    #
-    #     vargibbs_run = [
-    #         self.vargibbs,
-    #         f'-o={vargibbs_res}',
-    #         f'-par={self.par}',
-    #         '-calc=prediction',
-    #         '-v=0',
-    #         '-seqsalt={}'.format(1000),
-    #         '\"-seq=r({})\"'.format(seq1.replace('T', 'U')),
-    #         '-cseq={}'.format(complement(seq1)),
-    #         f'-ct={self.ct}',
-    #         f'-targetsalt={self.sal}',
-    #         f'-saltscheme={self.saltscheme}'
-    #     ]
-    #
-    #     run_func = ' '.join(vargibbs_run)
-    #     proc = subprocess.Popen(
-    #         run_func,
-    #         stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
-    #     )
-    #     result, err = proc.communicate()
-    #
-    #     try:
-    #         tm_val = float(open(vargibbs_res + '.ver').read().split('\n')[1].split(' ')[1])
-    #     except:
-    #         LOG.warning(err)
-    #         return False
-    #
-    #     tm_val = mt.chem_correction(tm_val, fmd=self.form)
-    #     return tm_val
+        return float(self.tm) < self.probeTmOpt(seq2, ind, i, j) < float(self.TM)
 
     # def tmCheck(self, seq2, ind, i, j):
     #     """Check if a candidate sequence has a melting temperature within
     #     range."""
-    #     return float(self.tm) < self.probeTmOpt(seq2) < float(self.TM)
+    #     return float(self.tm) < self.probeTmOpt_var(seq2) < float(self.TM)
 
     def gcCheck(self, seq3):
         """Check whether a candidate sequence has the right GC content."""
@@ -383,11 +387,12 @@ class SequenceCrawler:
         # Next check Tm, % G+C
         # NOTE: Because of the variable setup, the tmCheck MUST come before the
         # gcCheck for this to work properly.
-        # if self.Ncheckopt(seq5) == -1 and self.prohibitCheck(seq5) \
-        #         and self.tmCheck(seq5, ind, i, j) and self.gcCheck(seq5):
-        if self.Ncheckopt(seq5) == -1 and self.prohibitCheck(seq5)  and self.gcCheck(seq5):
-
+        if self.Ncheckopt(seq5) == -1 and self.prohibitCheck(seq5) \
+                and self.tmCheck(seq5, ind, i, j) and self.gcCheck(seq5):
             return True
+        # if self.Ncheckopt(seq5) == -1 and self.prohibitCheck(seq5) and self.gcCheck(seq5):
+        #
+        #     return True
 
     def BedprobeTm(self, seq7):
         """Tm calculation function for use with .bed output."""
@@ -576,13 +581,13 @@ class SequenceCrawler:
 
 def runSequenceCrawler(inputFile, l, L, gcPercent, GCPercent, nn_table, tm, TM,
                        X, sal, form, sp, conc1, conc2, OverlapModeVal, outNameVal, entropy,
-                       vargibbs, par, saltscheme, ct):
+                       vargibbs, par, saltscheme, ct, run_var=False):
     """Creates and runs a SequenceCrawler instance."""
 
     sc = SequenceCrawler(inputFile, l, L, gcPercent, GCPercent, nn_table, tm,
                          TM, X, sal, form, sp, conc1, conc2,
                          OverlapModeVal, outNameVal, entropy,
-                         vargibbs, par, saltscheme, ct)
+                         vargibbs, par, saltscheme, ct, run_var=run_var)
     sc.run()
 
 
