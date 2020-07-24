@@ -331,33 +331,37 @@ class JuncParser:
 
                 result.append((chrom, self.motif,
                                "yes" if self.motif in SJMOTIF else "no", left, right, revseq, seq, plpseq, Tm, '1',
-                               line.geneinfo))
+                               line.geneinfo, 'denovo'))
                 continue
             samdict[line.f_chr][line.location].append(line)
 
         for fakechrom, internalinfo in samdict.items():
+            is_known_junc = False
+            is_candidates = []
 
+            # filter the probe
             if locationfilter(fakechrom):
                 for location, samlines in internalinfo.items():
                     for line in samlines:
                         if line.internal_start <= self.st and line.internal_end >= self.ed:
-                            continue
-                            # result.append(line)
+                            is_known_junc = True
                         else:
                             if not line.checkFlag():
-                                chrom, start, stop, seq, Tm, revseq = line.f_chr, line.abs_start, \
-                                                                      line.abs_end, line.seq, line.Tm, \
-                                                                      line.proRC
-                                left, right = line.PLP
-                                plpseq = generateprobe(left, right, self._probelength, probeseqinfo, self._prefix,
-                                                       self.cDNA)
-
-                                result.append(
-                                    (chrom, self.motif, "yes" if self.motif in SJMOTIF else "no", left, right, revseq,
-                                     seq,
-                                     plpseq, Tm, '1', line.geneinfo))
+                                is_candidates.append(True)
                             else:
-                                continue
+                                is_candidates.append(False)
+
+                    line = samlines[0]
+                    if all(is_candidates):
+                        chrom, seq, Tm, revseq = line.f_chr, line.seq, line.Tm, line.proRC
+                        left, right = line.PLP
+                        plpseq = generateprobe(left, right, self._probelength, probeseqinfo, self._prefix,
+                                               self.cDNA)
+
+                        result.append(
+                            (chrom, self.motif, "yes" if self.motif in SJMOTIF else "no", left, right, revseq,
+                             seq,
+                             plpseq, Tm, '1', line.geneinfo, 'maybeKnown' if is_known_junc else 'denovo'))
             else:
                 continue
         return result
