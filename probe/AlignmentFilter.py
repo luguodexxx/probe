@@ -50,7 +50,7 @@ def mfold(falist, ct, na_conc, detG):
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
     )
 
-    result, err = proc.communicate()
+    _, _ = proc.communicate()
 
     try:
         with open(faprefix + ".fa.ct") as IN:
@@ -60,7 +60,7 @@ def mfold(falist, ct, na_conc, detG):
                 res.extend([line.strip().split()])
             leftcheck = set(map(lambda x: x[4], res[1:int(right)]))
             rightcheck = set(map(lambda x: x[4], res[-int(left):]))
-    except:
+    except FileNotFoundError:
         return False
 
     for f in glob.glob("{}.fa*".format(faprefix)):
