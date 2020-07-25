@@ -64,8 +64,8 @@ def mfold(falist, ct, na_conc, detG):
         return False
 
     for f in glob.glob("{}.fa*".format(faprefix)):
-        # print(f)
-        os.unlink(f)
+        if os.path.exists(f):
+            os.unlink(f)
 
     if detG == 0.0:
         if len(leftcheck) == 1 and len(rightcheck) == 1:
