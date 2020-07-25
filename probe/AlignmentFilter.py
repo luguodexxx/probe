@@ -54,7 +54,10 @@ def mfold(falist, ct, na_conc, detG):
 
     try:
         with open(faprefix + ".fa.ct") as IN:
-            G = abs(float(IN.readline().split()[3]))
+            line = IN.readline()
+            if not line:
+                return False
+            G = abs(float(line.split()[3]))
             res = []
             for line in IN.readlines():
                 res.extend([line.strip().split()])
