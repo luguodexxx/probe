@@ -316,11 +316,6 @@ def fetchcirc(genome, junctionfile, outdir):
 
 
 def main():
-    # a = Junction('1:4837075-4839386_1:4837075-4840955+',
-    #              '/Volumes/bu15191450186/zr/singlecell/10X/refdata-cellranger-mm10-2.1.0/fasta/genome.fa')
-    # fetchjunc('/Volumes/bu15191450186/zr/singlecell/10X/refdata-cellranger-mm10-2.1.0/fasta/genome.fa', '../splicing.txt', './test')
-    # for k, v in a.junc_for_seq().items():
-    #     print(k, v.seq)
     args = _parse_args()
     if args.circRNA:
         fetchcirc(args.fasta, args.target, args.outdir)

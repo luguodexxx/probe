@@ -48,7 +48,7 @@ class Fasta:
         self._end = end
         self._seq = seq
         self._strand = strand
-        if name == None:
+        if name is None:
             self.name = ':'.join([self._chr,
                                   '-'.join(map(str, [self._start, self._end])),
                                   self._strand])
@@ -169,7 +169,7 @@ class Faidx:
                     Index.write(
                         '{}\t{}\t{}\t{}\t{}\n'.format(
                             chrname, chrlength, offset, clen, blen))
-        except:
+        except IOError:
             raise IOError("Can't read the files! "
                           "Please check whether the file exists or limited access")
 

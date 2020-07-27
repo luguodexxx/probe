@@ -233,7 +233,7 @@ class SAM:
 def locationfilter(fake_chrname):
     """
     Filter the probe location. default length: 80nt
-    :param junctionname: @chrom:2-39;19;19
+    :param fake_chrname: @chrom:2-39;19;19
     :return:
     """
     interval, uplen, downlen = fake_chrname.split(';')

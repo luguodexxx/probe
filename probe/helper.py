@@ -22,7 +22,6 @@ def set_logging(log_name):
         delay=0
     )
 
-    # [%(module)s:%(lineno)d]
     formatter = logging.Formatter(
         fmt="[%(asctime)s] - [%(levelname)s]: %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S"
