@@ -22,8 +22,9 @@ setup(name='probedesign',
       keywords='RNAprobe',
       packages=find_packages(),
       install_requires=[
-          'biopython',
-          'sklearn'
+        'numpy==1.19.4',
+        'biopython==1.7.0',
+        'scikit_learn==0.23.2'
       ],
       entry_points={
           'console_scripts': [
