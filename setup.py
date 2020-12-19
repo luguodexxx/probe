@@ -23,7 +23,7 @@ setup(name='probedesign',
       packages=find_packages(),
       install_requires=[
         'numpy==1.19.4',
-        'biopython==1.7.0',
+        'biopython==1.70',
         'scikit_learn==0.23.2'
       ],
       entry_points={
